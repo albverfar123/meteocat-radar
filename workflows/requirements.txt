@@ -1,6 +1,0 @@
-requests
-numpy
-pillow
-rasterio
-xarray
-netcdf4
