@@ -1,0 +1,36 @@
+name: Actualització Radar Meteocat
+
+on:
+  schedule:
+    # S'executa cada 12 minuts aproximadament
+    # Nota: GitHub Actions pot tardar uns minuts més segons la cua del servidor
+    - cron: '*/12 * * * *'
+  workflow_dispatch: # Permet executar-lo manualment per provar
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositori
+        uses: actions/checkout@v3
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Instal·lar dependències
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Executar script de descàrrega
+        run: python radar_to_nc.py
+
+      - name: Commit i Push dels canvis
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          git add dades_radar/*.nc
+          git commit -m "Afegit nou fitxer radar: $(date)" || exit 0
+          git push
