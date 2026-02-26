@@ -65,7 +65,7 @@ def generate_daily_png(data, lon, lat, date_str):
     cmap.set_under(alpha=0) 
 
     # Pintem les dades. Fem servir vmin=0.1 per no pintar zones on no ha plogut
-    ax.pcolormesh(lon, lat, data, cmap=cmap, vmin=0.1, vmax=100, shading='auto')
+    ax.pcolormesh(lon, lat, data, cmap=cmap, vmin=0.1, vmax=40, shading='auto')
 
     png_out_path = os.path.join(DAILY_DIR, f"acumulat_{date_str}.png")
     fig.savefig(png_out_path, transparent=True, dpi=100)
@@ -74,3 +74,4 @@ def generate_daily_png(data, lon, lat, date_str):
 
 if __name__ == "__main__":
     calculate_daily()
+
