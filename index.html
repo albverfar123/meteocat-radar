@@ -46,12 +46,34 @@
         .status { font-size: 12px; margin-top: 5px; color: #444; font-weight: bold; text-align: center; }
 
         /* LLEGENDA (Mòbil: Flotant sobre els controls) */
-        .legend-box { 
-            background: rgba(255, 255, 255, 0.9); padding: 10px; border-radius: 8px; 
-            font-size: 11px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            font-family: sans-serif; width: 280px;
-            position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%);
-            z-index: 1400; pointer-events: none;
+        /* ================= ADAPTACIÓ PER A MÒBILS ================= */
+        @media (max-width: 600px) {
+            .control {
+                top: auto; bottom: 0; left: 0; right: 0;
+                width: 100%; border-radius: 15px 15px 0 0;
+                padding: 10px; box-sizing: border-box;
+            }
+        
+            .legend-box {
+                /* Barra més petita i centrada */
+                width: 240px !important; 
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                bottom: 175px !important; /* Distància respecte al panell de control */
+                padding: 8px 12px;
+                font-size: 10px;
+            }
+        
+            .colorbar-radar, .colorbar-daily {
+                height: 12px; /* Una mica més prima */
+            }
+        
+            .nav-arrows button {
+                padding: 10px;
+                font-size: 14px;
+            }
+        
+            #map { bottom: 130px; }
         }
 
         /* RESPONSIVE: ESCRIPTORI */
