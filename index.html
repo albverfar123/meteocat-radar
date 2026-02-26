@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Visor Radar Meteocat</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        html, body { height: 100%; margin: 0; }
+        
+        /* HEADER */
+        .header {
+            position: absolute; top: 0; left: 0; right: 0; height: 48px;
+            background: #222; color: white; display: flex; align-items: center;
+            padding: 0 16px; z-index: 2000; font-family: sans-serif;
+        }
+        .tab { margin-right: 18px; cursor: pointer; opacity: 0.7; }
+        .tab.active { opacity: 1; font-weight: bold; }
+
+        /* MAP */
+        #map { position: absolute; top: 48px; bottom: 0; width: 100%; background: #ddd; }
+
+        /* CONTROLS */
+        .control {
+            position: absolute; top: 60px; right: 10px; background: white;
+            padding: 14px; z-index: 1500; border-radius: 8px;
+            font-size: 13px; font-family: sans-serif; width: 250px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        }
+        .nav-arrows { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
+        .nav-arrows button { cursor: pointer; padding: 5px 10px; flex-grow: 1; }
+        .status { font-size: 11px; margin-top: 8px; color: #444; font-weight: bold; }
+        .legend-box { background: white; padding: 10px; border-radius: 8px; font-size: 12px; }
+        
+        .time-display { 
+            display: block; margin-top: 5px; font-family: monospace; 
+            background: #eee; padding: 4px; border-radius: 4px; text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="tab active" id="tabRadar">Radar (12 min)</div>
+    <div class="tab" id="tabDaily">Acumulat Diari</div>
+</div>
+
+<div id="map"></div>
+
+<div class="control">
+    <div id="radarControls">
+        <b>Navegació Radar:</b><br>
+        <div class="nav-arrows">
+            <button id="prevRadar">◀ Anterior</button>
+            <button id="nextRadar">Següent ▶</button>
+        </div>
+        <small style="color: #666;">(Salts de 12 minuts aproximadament)</small>
+        <div class="time-display" id="radarTime">Cercant dades...</div>
+    </div>
+
+    <div id="dailyControls" style="display:none;">
+        <b>Calendari:</b><br>
+        <input id="datePicker" type="date" style="width: 100%; margin-top:5px;">
+        <div class="nav-arrows">
+            <button id="prevDay">◀</button>
+            <button id="nextDay">▶</button>
+        </div>
+    </div>
+
+    <div class="status" id="statusMsg">Iniciant...</div>
+
+    <br>
+    Opacitat:<br>
+    <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.8" style="width:100%;">
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// =================================================
+// CONFIGURACIÓ
+// =================================================
+let mode = "radar";
+let currentRadarTime = new Date();
+// Arredonim a l'últim interval de 12 minuts (aprox :07 o :55)
+currentRadarTime.setMinutes(Math.floor(currentRadarTime.getMinutes() / 12) * 12 + 7);
+
+const imageBounds = [
+    [40.4, 0.0], // Sud-Oest (Lat, Lon)
+    [43.1, 3.5]  // Nord-Est (Lat, Lon)
+];
+
+// =================================================
+// MAPA
+// =================================================
+var map = L.map('map').setView([41.7, 1.8], 7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+var overlay = null;
+
+// =================================================
+// LOGICA DE CÀRREGA
+// =================================================
+
+function formatToPath(date, isDaily = false) {
+    const Y = date.getUTCFullYear();
+    const M = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const D = String(date.getUTCDate()).padStart(2, '0');
+    const h = String(date.getUTCHours()).padStart(2, '0');
+    const m = String(date.getUTCMinutes()).padStart(2, '0');
+    
+    if (isDaily) {
+        // Carpeta: acumulats_diaris/acumulat_YYYYMMDD.png
+        return `acumulats_diaris/acumulat_${Y}${M}${D}.png`;
+    } else {
+        // Carpeta: imatges_radar/radar_YYYYMMDD_HHMM07.png (intentem :07 o :00)
+        // Nota: Com que no sabem exactament si és :07 o :00, l'script 
+        // de Python ens ho dirà. Aquí provem el format estàndard:
+        return `imatges_radar/radar_${Y}${M}${D}_${h}${m}07.png`;
+    }
+}
+
+function loadLayer(path, label) {
+    statusMsg.textContent = "Buscant: " + path.split('/').pop();
+    
+    const img = new Image();
+    img.onload = function() {
+        if (overlay) map.removeLayer(overlay);
+        overlay = L.imageOverlay(path, imageBounds, { opacity: opacitySlider.value }).addTo(map);
+        statusMsg.style.color = "green";
+        statusMsg.textContent = "✔ Connectat";
+        if(mode === "radar") document.getElementById("radarTime").textContent = label;
+    };
+    img.onerror = function() {
+        // Si falla el :07, podríem provar el :00 aquí, o mostrar error
+        statusMsg.style.color = "red";
+        statusMsg.textContent = "✖ No trobat";
+    };
+    img.src = path;
+}
+
+function update() {
+    if (mode === "radar") {
+        const path = formatToPath(currentRadarTime, false);
+        const label = currentRadarTime.toISOString().replace('T',' ').substring(0,16) + " UTC";
+        loadLayer(path, label);
+    } else {
+        const d = new Date(datePicker.value);
+        const path = formatToPath(d, true);
+        loadLayer(path, d.toDateString());
+    }
+}
+
+// =================================================
+// EVENTS
+// =================================================
+
+// Canvi de Pestanyes
+document.getElementById("tabRadar").onclick = () => {
+    mode = "radar";
+    document.getElementById("tabRadar").classList.add("active");
+    document.getElementById("tabDaily").classList.remove("active");
+    document.getElementById("radarControls").style.display = "block";
+    document.getElementById("dailyControls").style.display = "none";
+    update();
+};
+
+document.getElementById("tabDaily").onclick = () => {
+    mode = "daily";
+    document.getElementById("tabDaily").classList.add("active");
+    document.getElementById("tabRadar").classList.remove("active");
+    document.getElementById("dailyControls").style.display = "block";
+    document.getElementById("radarControls").style.display = "none";
+    update();
+};
+
+// Navegació Radar (12 minuts)
+document.getElementById("prevRadar").onclick = () => {
+    currentRadarTime.setMinutes(currentRadarTime.getMinutes() - 12);
+    update();
+};
+document.getElementById("nextRadar").onclick = () => {
+    currentRadarTime.setMinutes(currentRadarTime.getMinutes() + 12);
+    update();
+};
+
+// Navegació Diària
+const datePicker = document.getElementById("datePicker");
+datePicker.value = new Date().toISOString().slice(0,10);
+datePicker.onchange = () => update();
+
+document.getElementById("prevDay").onclick = () => {
+    let d = new Date(datePicker.value);
+    d.setDate(d.getDate() - 1);
+    datePicker.value = d.toISOString().slice(0,10);
+    update();
+};
+document.getElementById("nextDay").onclick = () => {
+    let d = new Date(datePicker.value);
+    d.setDate(d.getDate() + 1);
+    datePicker.value = d.toISOString().slice(0,10);
+    update();
+};
+
+// Opacitat
+const opacitySlider = document.getElementById("opacitySlider");
+opacitySlider.oninput = (e) => {
+    if (overlay) overlay.setOpacity(e.target.value);
+};
+
+// Inici
+update();
+
+</script>
+</body>
+</html>
