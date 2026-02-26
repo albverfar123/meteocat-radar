@@ -118,5 +118,26 @@ def process():
     img_png.save(os.path.join(PNG_DIR, png_filename))
     print(f"Creat PNG: {png_filename}")
 
+    import json
+
+    # ... (dins de la funció process, després de crear el PNG)
+    
+    # Extraiem els límits exactes de les coordenades que hem calculat
+    lat_min, lat_max = float(ds.lat.min()), float(ds.lat.max())
+    lon_min, lon_max = float(ds.lon.min()), float(ds.lon.max())
+    
+    bounds_data = {
+        "lat_min": lat_min,
+        "lat_max": lat_max,
+        "lon_min": lon_min,
+        "lon_max": lon_max
+    }
+    
+    with open("bounds.json", "w") as f:
+        json.dump(bounds_data, f)
+
+    print(f"📍 Coordenades guardades: {bounds_data}")
+
 if __name__ == "__main__":
     process()
+
