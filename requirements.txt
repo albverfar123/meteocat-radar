@@ -3,4 +3,5 @@ numpy
 pillow
 rasterio
 xarray
+matplotlib
 netcdf4
