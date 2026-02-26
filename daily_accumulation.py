@@ -51,32 +51,31 @@ def calculate_daily():
     # 5. GENERACIÓ DEL PNG DE L'ACUMULAT
     generate_daily_png(total_precip, lon, lat, ieri)
 
+import matplotlib.colors as colors  # Afegeix aquesta importació
+
 def generate_daily_png(data, lon, lat, date_str):
-    # Creem la figura. La mida es passa com a (amplada, alçada) en polzades
-    # data.shape[1] és l'amplada (columnes), data.shape[0] és l'alçada (files)
     fig = plt.figure(frameon=False)
-    
-    # CORRECCIÓ: Passem els valors directament sense 'width=' ni 'height='
     fig.set_size_inches(data.shape[1]/100, data.shape[0]/100)
     
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
 
-    # Escala de colors per a l'acumulat
+    # Definim la norma logarítmica de 0.1 a 200 mm
+    # vmin ha de ser > 0 per a l'escala logarítmica
+    norm = colors.LogNorm(vmin=0.1, vmax=200)
     cmap = plt.get_cmap('turbo').copy()
-    cmap.set_under(alpha=0) 
+    cmap.set_under(alpha=0) # Valors per sota de 0.1 seran transparents
 
-    # Dibuixem les dades
-    # Fem servir pcolormesh per assegurar que cada cel·la estigui al seu lloc
-    ax.pcolormesh(lon, lat, data, cmap=cmap, vmin=0.1, vmax=100, shading='auto')
+    # Apliquem la norma a la visualització
+    ax.pcolormesh(lon, lat, data, cmap=cmap, norm=norm, shading='auto')
 
-    # Guardem el PNG i també el bounds.json perquè el visor sàpiga on posar-lo
     png_out_path = os.path.join(DAILY_DIR, f"acumulat_{date_str}.png")
     fig.savefig(png_out_path, transparent=True, dpi=100)
     plt.close(fig)
-    print(f"🎨 PNG diari guardat: {png_out_path}")
-
+    print(f"🎨 PNG logarítmic guardat: {png_out_path}")
+    
+    # ... (resta del codi de bounds.json igual)
     # APROFITEM PER GUARDAR EL BOUNDS.JSON TAMBÉ AQUÍ
     bounds_data = {
         "lat_min": float(lat.min()),
@@ -91,5 +90,6 @@ def generate_daily_png(data, lon, lat, date_str):
 
 if __name__ == "__main__":
     calculate_daily()
+
 
 
