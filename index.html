@@ -137,7 +137,15 @@
         <span style="font-size:11px">Opacitat:</span>
         <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.8" style="flex-grow:1;">
     </div>
-
+    <div style="width: 100%; border-top: 1px solid #eee; padding-top: 10px; margin-top: 5px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; font-weight: bold;">
+            <input type="checkbox" id="checkCatalunya"> Capa Catalunya (PNG)
+        </label>
+        <div id="boxOpacitatCat" style="display:none; align-items:center; gap:10px; margin-top:5px;">
+            <span style="font-size:11px">Opacitat Capa:</span>
+            <input id="opacityCatalunya" type="range" min="0" max="1" step="0.05" value="0.7" style="flex-grow:1;">
+        </div>
+    </div>
     <button id="btnLocate">📍 Ubicació GPS</button>
 </div>
 
@@ -219,6 +227,43 @@ toggleBtn.onclick = () => {
     }
 };
 
+    
+// CONFIGURACIÓ CAPA CATALUNYA
+// Nota: Substitueix 'catalunya_gran.png' pel nom real del teu fitxer
+const pathCatalunya = 'mapa_aspect.png'; 
+let overlayCatalunya = null;
+
+const checkCat = document.getElementById("checkCatalunya");
+const sliderCat = document.getElementById("opacityCatalunya");
+const boxOpacitatCat = document.getElementById("boxOpacitatCat");
+
+checkCat.onchange = function() {
+    if (this.checked) {
+        // Creem la capa si no existeix i l'afegim
+        // Fem servir 'imageBounds' o unes coordenades fixes si la imatge és diferent al radar
+        overlayCatalunya = L.imageOverlay(pathCatalunya, imageBounds, { 
+            opacity: sliderCat.value,
+            zIndex: 1000 // Perquè quedi per sota o sobre el radar segons vulguis
+        }).addTo(map);
+        boxOpacitatCat.style.display = "flex";
+    } else {
+        if (overlayCatalunya) {
+            map.removeLayer(overlayCatalunya);
+            overlayCatalunya = null;
+        }
+        boxOpacitatCat.style.display = "none";
+    }
+};
+
+sliderCat.oninput = function(e) {
+    if (overlayCatalunya) {
+        overlayCatalunya.setOpacity(e.target.value);
+    }
+};
+
+
+
+    
 // GPS
 document.getElementById("btnLocate").onclick = () => map.locate({setView: true, maxZoom: 10});
 map.on('locationfound', (e) => {
