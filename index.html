@@ -20,130 +20,86 @@
         .tab.active { opacity: 1; font-weight: bold; border-bottom: 3px solid #007bff; }
 
         /* MAP */
-        #map { position: absolute; top: 50px; bottom: 0; width: 100%; background: #f0f0f0; }
+        #map { position: absolute; top: 50px; bottom: 0; width: 100%; background: #f0f0f0; transition: bottom 0.3s; }
 
-        /* CONTROLS (Mòbil per defecte: Barra inferior) */
+        /* CONTROLS (Base) */
         .control {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            background: white; 
-            padding: 10px 15px; /* Reduït el padding vertical de 15 a 10 */
-            z-index: 1500;
-            border-radius: 20px 20px 0 0; 
+            position: absolute; background: white; z-index: 1500;
+            transition: transform 0.3s ease-in-out, opacity 0.3s;
+            display: flex; flex-direction: column; gap: 5px; align-items: center;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
-            display: flex; 
-            flex-direction: column; 
-            gap: 5px; /* Reduït l'espai entre elements de 8 a 5 */
-            align-items: center; /* Centra els botons i el rellotge horitzontalment */
         }
-        
-        .nav-arrows { 
-            display: flex; 
-            gap: 10px; 
-            margin-top: 2px; 
-            width: 100%; 
-            justify-content: center; /* Botons centrats */
+
+        /* BOTÓ AMAGAR/MOSTRAR */
+        #toggleMenu {
+            position: absolute; background: white; border: 1px solid #ccc;
+            border-radius: 50%; width: 35px; height: 35px; cursor: pointer;
+            z-index: 2100; display: flex; align-items: center; justify-content: center;
+            font-size: 18px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
-        
+
+        /* GPS BUTTON */
+        #btnLocate {
+            width: 100%; padding: 6px; background: #007bff; color: white;
+            border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
+            font-size: 11px; margin-top: 5px;
+        }
+        #btnLocate:active { background: #0056b3; }
+
+        .nav-arrows { display: flex; gap: 10px; margin-top: 2px; width: 100%; justify-content: center; }
         .nav-arrows button { 
-            cursor: pointer; 
-            padding: 6px 12px; /* Més baixos i estrets */
-            flex: none; /* IMPORTANT: Deixa d'ocupar tot l'ample disponible */
-            min-width: 80px; /* Amplada mínima perquè siguin còmodes de clicar */
-            border: 1px solid #ccc; 
-            border-radius: 6px; 
-            background: #f8f9fa; 
-            font-size: 12px; /* Lletra una mica més petita */
-            font-weight: bold;
+            cursor: pointer; padding: 6px 12px; flex: none; min-width: 80px;
+            border: 1px solid #ccc; border-radius: 6px; background: #f8f9fa; 
+            font-size: 12px; font-weight: bold;
         }
         
         .time-display { 
-            display: inline-block; /* Només ocupa l'espai del text */
-            margin-top: 2px; 
-            font-family: monospace; 
-            background: #eee; 
-            padding: 4px 12px; /* Més compacte */
-            border-radius: 6px; 
-            text-align: center;
-            font-weight: bold; 
-            color: #333; 
-            font-size: 12px;
-            min-width: 120px;
+            display: inline-block; font-family: monospace; background: #eee; 
+            padding: 4px 12px; border-radius: 6px; text-align: center;
+            font-weight: bold; color: #333; font-size: 12px; min-width: 120px;
         }
 
-        .status { font-size: 12px; margin-top: 5px; color: #444; font-weight: bold; text-align: center; }
+        .status { font-size: 11px; color: #444; font-weight: bold; text-align: center; }
 
-        /* LLEGENDA (Mòbil: Flotant sobre els controls) */
-       /* ================= ADAPTACIÓ PER A MÒBILS (Fins a 600px) ================= */
-        @media (max-width: 600px) {
-            /* El panell de control blanc de sota */
-            .control {
-                top: auto !important; 
-                bottom: 0 !important; 
-                left: 0 !important; 
-                right: 0 !important;
-                width: 100% !important; 
-                border-radius: 20px 20px 0 0 !important;
-                padding: 15px !important; 
-                box-sizing: border-box;
-            }
-        
-            /* La llegenda de colors */
-            .legend-box {
-                    position: fixed !important;
-                    width: 275px !important;    /* Una mica més estilitzada */
-                    left: 50% !important;
-                    transform: translateX(-50%) !important;
-                    
-                    /* Forcem la posició a la part inferior */
-                    top: auto !important;
-                    bottom: 20px !important; /* Base de la pantalla */
-                    
-                    /* Aquest margin és el que l'empeny per sobre dels controls (140px de control + espai) */
-                    margin-bottom: 150px !important; 
-                    
-                    padding: 6px 10px !important;
-                    font-size: 10px !important;
-                    z-index: 2500 !important; /* Valor molt alt per estar per sobre de tot */
-                    background: rgba(255, 255, 255, 0.9) !important;
-                    border: 1px solid #ccc !important;
-                }
-        
-            /* Reduïm la barra de colors interna */
-            .colorbar-radar, .colorbar-daily {
-                height: 10px !important;
-            }
-        
-            /* Fem que el mapa no s'amagui sota el panell de control completament */
-            #map { 
-                bottom: 140px !important; 
-            }
-        
-            /* Amaguem textos llargs en mòbil per guanyar espai vertical */
-            .info-box { display: none !important; }
-        }
-
-        /* RESPONSIVE: ESCRIPTORI */
+        /* ESTILS ESCRIPTORI */
         @media (min-width: 601px) {
             .control {
-                top: 70px; right: 20px; bottom: auto; left: auto;
-                width: 260px; border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.2);
+                top: 70px; right: 20px; width: 260px; border-radius: 12px; padding: 15px;
             }
+            .control.minimized { transform: translateX(320px); opacity: 0; }
+            #toggleMenu { top: 70px; right: 20px; } /* Es mou amb el menú si no està minimitzat */
+            .control.minimized + #toggleMenu { right: 20px; }
+            .legend-box { bottom: 30px; right: 20px; width: 300px; }
+        }
+
+        /* ESTILS MÒBIL */
+        @media (max-width: 600px) {
+            .control {
+                bottom: 0; left: 0; right: 0; width: 100%; 
+                border-radius: 20px 20px 0 0; padding: 15px; box-sizing: border-box;
+            }
+            .control.minimized { transform: translateY(100%); }
+            
+            #toggleMenu { bottom: 10px; right: 15px; }
+            /* Quan el menú està obert al mòbil, el botó de tancar puja */
+            #toggleMenu.on-top { bottom: 180px; } 
+
             .legend-box {
-                bottom: 30px; right: 20px; left: auto; transform: none; width: 300px;
+                position: fixed !important; width: 275px !important; left: 50% !important;
+                transform: translateX(-50%) !important; top: auto !important;
+                bottom: 20px !important; margin-bottom: 165px !important; 
+                padding: 6px 10px !important; font-size: 10px !important;
+                z-index: 1400 !important; background: rgba(255, 255, 255, 0.9) !important;
+                border: 1px solid #ccc !important;
+                transition: opacity 0.3s;
             }
-            .nav-arrows button { padding: 6px; font-size: 14px; }
+            .legend-box.hidden { opacity: 0; }
             #map { bottom: 0; }
         }
 
-        /* Estils barres de colors */
-        .colorbar-radar { 
-            background: linear-gradient(to right, #8000FF, #0000FF, #00FFFF, #00FF00, #FFFF00, #FF0000, #FF00FF); 
-            height:15px; width:100%; margin-top:5px; border:1px solid #999;
-        }
-        .colorbar-daily {
-            background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); 
-            height:18px; width:100%; margin-top:8px; border:1px solid #777;
-        }
+        /* Escala colors */
+        .colorbar-radar { background: linear-gradient(to right, #8000FF, #0000FF, #00FFFF, #00FF00, #FFFF00, #FF0000, #FF00FF); height:12px; width:100%; border:1px solid #999; margin-top:5px; }
+        .colorbar-daily { background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); height:15px; width:100%; border:1px solid #777; margin-top:5px; }
     </style>
 </head>
 <body>
@@ -155,8 +111,8 @@
 
 <div id="map"></div>
 
-<div class="control">
-    <div id="radarControls">
+<div class="control" id="mainControl">
+    <div id="radarControls" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
         <div class="nav-arrows">
             <button id="prevRadar">◀ Ant.</button>
             <button id="nextRadar">Seg. ▶</button>
@@ -164,8 +120,8 @@
         <div class="time-display" id="radarTime">---</div>
     </div>
 
-    <div id="dailyControls" style="display:none;">
-        <input id="datePicker" type="date" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px;">
+    <div id="dailyControls" style="display:none; width: 100%;">
+        <input id="datePicker" type="date" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; margin-bottom: 5px;">
         <div class="nav-arrows">
             <button id="prevDay">◀ Dia</button>
             <button id="nextDay">Dia ▶</button>
@@ -174,11 +130,15 @@
 
     <div class="status" id="statusMsg">Carregant mapa...</div>
 
-    <div style="display:flex; align-items:center; gap:10px; margin-top:5px;">
+    <div style="display:flex; align-items:center; gap:10px; width: 100%;">
         <span style="font-size:11px">Opacitat:</span>
         <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.8" style="flex-grow:1;">
     </div>
+
+    <button id="btnLocate">📍 Ubicació GPS</button>
 </div>
+
+<button id="toggleMenu" title="Amagar/Mostrar menú">✖</button>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -191,147 +151,100 @@ let currentRadarTime = new Date();
 currentRadarTime.setMinutes(Math.floor(currentRadarTime.getMinutes() / 12) * 12);
 let imageBounds = [[40.0, 0.0], [43.5, 3.8]]; 
 var overlay = null;
+var userMarker = null;
 
-// =================================================
-// MAPA I LLEGENDA
-// =================================================
 var map = L.map('map', { zoomControl: false }).setView([41.7, 1.8], 7);
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 L.control.zoom({ position: 'topright' }).addTo(map);
-    
-// Afegeix l'escala de distància
-L.control.scale({
-    imperial: false, // Desactivem milles i peus
-    metric: true,    // Activem metres i quilòmetres
-    position: 'topleft' // Esquerra inferior
-}).addTo(map);
+L.control.scale({ imperial: false, metric: true, position: 'topleft' }).addTo(map);
 
+// LLEGENDA
 var legend = L.control({ position: "bottomright" });
 legend.onAdd = function() {
     this._div = L.DomUtil.create("div", "legend-box");
     this.update();
     return this._div;
 };
-
 legend.update = function() {
     if (mode === "radar") {
-        this._div.innerHTML = `<b>Intensitat (mm/h)</b><br>
-            <div class="colorbar-radar"></div>
-            <div style="display:flex; justify-content: space-between; width:100%; font-size:10px; margin-top:2px;">
-                <span>0.2</span><span>15</span><span>150+</span>
-            </div>`;
+        this._div.innerHTML = `<b>Intensitat (mm/h)</b><div class="colorbar-radar"></div><div style="display:flex; justify-content: space-between; font-size:9px;"><span>0.2</span><span>15</span><span>150+</span></div>`;
     } else {
-        this._div.innerHTML = `
-            <div style="width: 100%;">
-                <b>Acumulat Diari (mm) <small>(log)</small></b><br>
-                <div class="colorbar-daily"></div>
-                <div style="position: relative; width: 100%; height: 6px;">
-                    <span style="position: absolute; left: 0%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 30.3%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 39.4%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 51.5%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 60.6%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 69.7%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 81.8%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 90.9%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 100%; border-left: 1px solid #444; height: 100%; margin-left:-1px;"></span>
-                </div>
-                <div style="position: relative; width: 100%; height: 15px; font-size: 10px; font-family: sans-serif; margin-top: 2px;">
-                    <span style="position: absolute; left: 0%; transform: translateX(-50%);">0.1</span>
-                    <span style="position: absolute; left: 30.3%; transform: translateX(-50%);">1</span>
-                    <span style="position: absolute; left: 39.4%; transform: translateX(-50%);">2</span>
-                    <span style="position: absolute; left: 51.5%; transform: translateX(-50%);">5</span>
-                    <span style="position: absolute; left: 60.6%; transform: translateX(-50%);">10</span>
-                    <span style="position: absolute; left: 69.7%; transform: translateX(-50%);">20</span>
-                    <span style="position: absolute; left: 81.8%; transform: translateX(-50%);">50</span>
-                    <span style="position: absolute; left: 90.9%; transform: translateX(-50%);">100</span>
-                    <span style="position: absolute; left: 100%; transform: translateX(-100%);">200</span>
-                </div>
-            </div>`;
+        this._div.innerHTML = `<b>Acumulat (mm)</b><div class="colorbar-daily"></div><div style="display:flex; justify-content: space-between; font-size:9px;"><span>0.1</span><span>10</span><span>200</span></div>`;
     }
 };
 legend.addTo(map);
 
-// =================================================
-// LÒGICA DE CÀRREGA
-// =================================================
+// AMAGAR / MOSTRAR MENÚ
+const mainControl = document.getElementById("mainControl");
+const toggleBtn = document.getElementById("toggleMenu");
+const legendBox = document.querySelector(".legend-box");
+
+toggleBtn.onclick = () => {
+    const isMinimized = mainControl.classList.toggle("minimized");
+    toggleBtn.innerHTML = isMinimized ? "☰" : "✖";
+    
+    if (window.innerWidth <= 600) {
+        toggleBtn.classList.toggle("on-top", !isMinimized);
+        if (legendBox) legendBox.classList.toggle("hidden", isMinimized);
+    }
+};
+
+// GPS
+document.getElementById("btnLocate").onclick = () => {
+    map.locate({setView: true, maxZoom: 10});
+};
+
+map.on('locationfound', (e) => {
+    if (userMarker) map.removeLayer(userMarker);
+    userMarker = L.circleMarker(e.latlng, { radius: 8, color: 'white', fillColor: '#007bff', fillOpacity: 1, weight: 2 }).addTo(map);
+    userMarker.bindPopup("Ets aquí").openPopup();
+});
+
+map.on('locationerror', () => alert("No s'ha pogut trobar la teva ubicació. Revisa els permisos."));
+
+// CARREGA IMATGES
 async function fetchBounds() {
     try {
         const response = await fetch('bounds.json');
         const data = await response.json();
         imageBounds = [[data.lat_min, data.lon_min], [data.lat_max, data.lon_max]];
         update(); 
-    } catch (e) { console.error("No bounds.json", e); update(); }
+    } catch (e) { update(); }
 }
 
 function tryLoadImage(date, suffixIndex = 0) {
     const suffixes = ["07", "00"];
-    const Y = date.getUTCFullYear();
-    const M = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const D = String(date.getUTCDate()).padStart(2, '0');
-    const h = String(date.getUTCHours()).padStart(2, '0');
-    const m = String(date.getUTCMinutes()).padStart(2, '0');
+    const Y = date.getUTCFullYear(), M = String(date.getUTCMonth() + 1).padStart(2, '0'), D = String(date.getUTCDate()).padStart(2, '0');
+    const h = String(date.getUTCHours()).padStart(2, '0'), m = String(date.getUTCMinutes()).padStart(2, '0');
+    let path = (mode === "radar") ? `imatges_radar/radar_${Y}${M}${D}_${h}${m}${suffixes[suffixIndex]}.png` : `acumulats_diaris/acumulat_${Y}${M}${D}.png`;
     
-    let path = (mode === "radar") 
-        ? `imatges_radar/radar_${Y}${M}${D}_${h}${m}${suffixes[suffixIndex]}.png`
-        : `acumulats_diaris/acumulat_${Y}${M}${D}.png`;
-
-    statusMsg.textContent = "Cercant: " + path.split('/').pop();
+    const statusMsg = document.getElementById("statusMsg");
+    statusMsg.textContent = "Cercant dades...";
     const img = new Image();
-    img.onload = function() {
+    img.onload = () => {
         if (overlay) map.removeLayer(overlay);
-        overlay = L.imageOverlay(path, imageBounds, { opacity: opacitySlider.value }).addTo(map);
-        statusMsg.style.color = "green";
-        statusMsg.textContent = "✔ Dades carregades";
+        overlay = L.imageOverlay(path, imageBounds, { opacity: document.getElementById("opacitySlider").value }).addTo(map);
+        statusMsg.style.color = "green"; statusMsg.textContent = "✔ Actualitzat";
         if(mode === "radar") document.getElementById("radarTime").textContent = `${h}:${m} UTC`;
     };
-    img.onerror = function() {
-        if (mode === "radar" && suffixIndex === 0) { tryLoadImage(date, 1); } 
-        else {
-            statusMsg.style.color = "red";
-            statusMsg.textContent = "✖ No hi ha dades";
-            if (overlay) map.removeLayer(overlay);
-            overlay = null;
-        }
+    img.onerror = () => {
+        if (mode === "radar" && suffixIndex === 0) tryLoadImage(date, 1);
+        else { statusMsg.style.color = "red"; statusMsg.textContent = "✖ Sense dades"; if (overlay) map.removeLayer(overlay); overlay = null; }
     };
     img.src = path;
 }
 
-function update() {
-    legend.update();
-    if (mode === "radar") { tryLoadImage(currentRadarTime); } 
-    else { tryLoadImage(new Date(datePicker.value)); }
-}
-    // Forçar la posició de la llegenda al mòbil via JS si el CSS falla
-if (window.innerWidth < 600) {
-    var legendDiv = document.querySelector('.legend-box');
-    if (legendDiv) {
-        legendDiv.style.bottom = "190px"; 
-        legendDiv.style.left = "50%";
-        legendDiv.style.transform = "translateX(-50%)";
-    }
-}
+function update() { legend.update(); tryLoadImage(mode === "radar" ? currentRadarTime : new Date(document.getElementById("datePicker").value)); }
 
-// =================================================
-// ESDEVENIMENTS
-// =================================================
-document.getElementById("tabRadar").onclick = () => {
-    mode = "radar";
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.getElementById("tabRadar").classList.add("active");
-    document.getElementById("radarControls").style.display = "block";
-    document.getElementById("dailyControls").style.display = "none";
-    update();
-};
+// TABS I NAV
+document.getElementById("tabRadar").onclick = () => { mode = "radar"; toggleTabs("tabRadar", "tabDaily", "radarControls", "dailyControls"); };
+document.getElementById("tabDaily").onclick = () => { mode = "daily"; toggleTabs("tabDaily", "tabRadar", "dailyControls", "radarControls"); };
 
-document.getElementById("tabDaily").onclick = () => {
-    mode = "daily";
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.getElementById("tabDaily").classList.add("active");
-    document.getElementById("dailyControls").style.display = "block";
-    document.getElementById("radarControls").style.display = "none";
+function toggleTabs(activeId, inactiveId, showCtrl, hideCtrl) {
+    document.getElementById(activeId).classList.add("active"); document.getElementById(inactiveId).classList.remove("active");
+    document.getElementById(showCtrl).style.display = "block"; document.getElementById(hideCtrl).style.display = "none";
     update();
-};
+}
 
 document.getElementById("prevRadar").onclick = () => { currentRadarTime.setMinutes(currentRadarTime.getMinutes() - 12); update(); };
 document.getElementById("nextRadar").onclick = () => { currentRadarTime.setMinutes(currentRadarTime.getMinutes() + 12); update(); };
@@ -339,23 +252,14 @@ document.getElementById("nextRadar").onclick = () => { currentRadarTime.setMinut
 const datePicker = document.getElementById("datePicker");
 let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
 datePicker.value = yesterday.toISOString().slice(0,10);
-datePicker.onchange = () => update();
+datePicker.onchange = update;
 
-document.getElementById("prevDay").onclick = () => {
-    let d = new Date(datePicker.value); d.setDate(d.getDate() - 1);
-    datePicker.value = d.toISOString().slice(0,10); update();
-};
-document.getElementById("nextDay").onclick = () => {
-    let d = new Date(datePicker.value); d.setDate(d.getDate() + 1);
-    datePicker.value = d.toISOString().slice(0,10); update();
-};
+document.getElementById("prevDay").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()-1); datePicker.value=d.toISOString().slice(0,10); update(); };
+document.getElementById("nextDay").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()+1); datePicker.value=d.toISOString().slice(0,10); update(); };
 
-const opacitySlider = document.getElementById("opacitySlider");
-opacitySlider.oninput = (e) => { if (overlay) overlay.setOpacity(e.target.value); };
+document.getElementById("opacitySlider").oninput = (e) => { if (overlay) overlay.setOpacity(e.target.value); };
 
-// Inicialització
 fetchBounds();
-
 </script>
 </body>
 </html>
