@@ -148,11 +148,17 @@ legend.update = function() {
                 <span>0.2</span><span>15</span><span>150+</span>
             </div>`;
     } else {
-        this._div.innerHTML = `<b>Acumulat Diari (mm)</b><br>
+        // Escala Logarítmica: Els salts visuals són exponencials
+        this._div.innerHTML = `<b>Acumulat Diari (mm) <small>(log)</small></b><br>
             <div style="background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); height:15px; width:200px; margin-top:5px; border:1px solid #999;"></div>
-            <div style="display:flex; justify-content: space-between; width:200px; font-size:10px;">
-                <span>0</span><span>50</span><span>100+</span>
-            </div>`;
+            <div style="position: relative; width: 200px; height: 15px; font-size: 10px; font-family: sans-serif;">
+                <span style="position: absolute; left: 0%;">0.1</span>
+                <span style="position: absolute; left: 27%;">1</span>
+                <span style="position: absolute; left: 58%;">10</span>
+                <span style="position: absolute; left: 78%;">50</span>
+                <span style="position: absolute; left: 100%; transform: translateX(-100%);">200</span>
+            </div>
+            <div style="font-size: 9px; color: #666; margin-top: 5px;">Escala no lineal per realçar pluges febles</div>`;
     }
 };
 legend.addTo(map);
