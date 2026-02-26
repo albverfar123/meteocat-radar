@@ -3,6 +3,7 @@ import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
+import matplotlib.colors as colors
 
 OUTPUT_DIR = "dades_radar"
 DAILY_DIR = "acumulats_diaris"
@@ -90,6 +91,7 @@ def generate_daily_png(data, lon, lat, date_str):
 
 if __name__ == "__main__":
     calculate_daily()
+
 
 
 
