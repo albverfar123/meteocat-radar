@@ -11,7 +11,8 @@ from rasterio.transform import from_bounds
 
 # --- CONFIGURACIÓ ---
 ZOOM = 7
-OUTPUT_DIR = "dades_radar"  # Carpeta dins del repositori
+OUTPUT_DIR = "dades_radar"
+PNG_DIR = "imatges_radar"  # Carpeta nova per als PNGs
 
 TILES = [(64, 80), (65, 80), (64, 79), (65, 79)]
 
@@ -19,7 +20,7 @@ LLEGENDA_RADAR = {
     (128, 0, 255): 0.2,   (64, 0, 255): 0.8,   (0, 0, 255): 1.2,
     (0, 255, 255): 2.0,   (0, 255, 128): 3.0,   (0, 255, 0): 4.5,
     (63, 255, 0): 6.5,    (128, 255, 0): 9.0,   (198, 255, 0): 12.0,
-    (255, 255, 0): 15.0,  (255, 171, 0): 15.0,  (255, 129, 0): 20.0,
+    (255, 255, 0): 15.0,  (255, 171, 0): 15.1,  (255, 129, 0): 20.0,
     (255, 87, 0): 30.0,   (255, 45, 0): 40.0,   (255, 0, 0): 50.0,
     (255, 0, 63): 60.0,   (255, 0, 127): 70.0,  (255, 0, 191): 85.0,
     (255, 0, 255): 100.0, (255, 255, 255): 150.0
@@ -57,8 +58,9 @@ def find_latest_available_timestamp():
     return None
 
 def process():
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
+    # Crear carpetes si no existeixen
+    for d in [OUTPUT_DIR, PNG_DIR]:
+        if not os.path.exists(d): os.makedirs(d)
 
     target_ts = find_latest_available_timestamp()
     if not target_ts: return
@@ -69,16 +71,19 @@ def process():
         if r.status_code == 200:
             tiles_data[(x, y)] = np.array(Image.open(BytesIO(r.content)).convert("RGB"))
 
+    # Muntar el mosaic
     top = np.hstack([tiles_data[(64, 80)], tiles_data[(65, 80)]])
     bottom = np.hstack([tiles_data[(64, 79)], tiles_data[(65, 79)]])
     mosaic = np.vstack([top, bottom]).astype(np.uint8)
 
     height, width, _ = mosaic.shape
+    
+    # --- GENERACIÓ DEL NETCDF ---
     precip_data = np.full((height, width), np.nan, dtype=np.float32)
-    r, g, b = mosaic[:,:,0], mosaic[:,:,1], mosaic[:,:,2]
+    r_chan, g_chan, b_chan = mosaic[:,:,0], mosaic[:,:,1], mosaic[:,:,2]
 
     for color, value in LLEGENDA_RADAR.items():
-        mask = (r == color[0]) & (g == color[1]) & (b == color[2])
+        mask = (r_chan == color[0]) & (g_chan == color[1]) & (b_chan == color[2])
         precip_data[mask] = value
 
     bounds_list = [tile_bounds_tms(x, y, ZOOM) for x, y in TILES]
@@ -97,9 +102,21 @@ def process():
         attrs={"timestamp_utc": target_ts.strftime("%Y-%m-%d %H:%M:%S")}
     )
     
-    output_filename = f"radar_{target_ts:%Y%m%d_%H%M%S}.nc"
-    ds.to_netcdf(os.path.join(OUTPUT_DIR, output_filename))
-    print(f"Creat: {output_filename}")
+    nc_filename = f"radar_{target_ts:%Y%m%d_%H%M%S}.nc"
+    ds.to_netcdf(os.path.join(OUTPUT_DIR, nc_filename))
+    print(f"Creat NC: {nc_filename}")
+
+    # --- GENERACIÓ DEL PNG TRANSPARENT ---
+    # Creem una màscara d'alfa: 0 on és negre [0,0,0], 255 on hi ha color
+    alpha = np.where(np.all(mosaic == [0, 0, 0], axis=-1), 0, 255).astype(np.uint8)
+    
+    # Ajuntem RGB amb l'Alpha
+    rgba_mosaic = np.dstack((mosaic, alpha))
+    
+    img_png = Image.fromarray(rgba_mosaic, 'RGBA')
+    png_filename = f"radar_{target_ts:%Y%m%d_%H%M%S}.png"
+    img_png.save(os.path.join(PNG_DIR, png_filename))
+    print(f"Creat PNG: {png_filename}")
 
 if __name__ == "__main__":
     process()
