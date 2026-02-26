@@ -74,10 +74,7 @@
                 top: 70px; right: 20px; width: 260px; border-radius: 12px; padding: 15px;
             }
             .control.minimized { transform: translateX(350px); opacity: 0; }
-            
-            /* Botó més amunt per no tocar el calendari */
             #toggleMenu { top: 60px; right: 20px; } 
-            
             .legend-box { position: absolute; bottom: 30px; right: 20px; width: 280px; }
         }
 
@@ -90,20 +87,16 @@
             .control.minimized { transform: translateY(100%); }
             
             #toggleMenu { bottom: 15px; right: 15px; }
-            #toggleMenu.on-top { bottom: 200px; } /* Puja quan el menú s'obre */
+            #toggleMenu.on-top { bottom: 200px; } 
 
             .legend-box {
                 position: fixed !important; width: 260px !important; left: 50% !important;
                 transform: translateX(-50%) !important;
                 bottom: 0px !important;
-                /* El margin-bottom canvia per JS segons si el menú està obert */
                 margin-bottom: 165px; 
                 font-size: 10px !important;
             }
-            
-            /* Quan el menú es tanca, la llegenda baixa */
             .legend-box.lowered { margin-bottom: 25px !important; }
-
             #map { bottom: 0; }
         }
 
@@ -160,29 +153,59 @@ let imageBounds = [[40.0, 0.0], [43.5, 3.8]];
 var overlay = null;
 var userMarker = null;
 
-// MAPA
 var map = L.map('map', { zoomControl: false }).setView([41.7, 1.8], 7);
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 L.control.zoom({ position: 'topright' }).addTo(map);
 L.control.scale({ imperial: false, metric: true, position: 'topleft' }).addTo(map);
 
-// LLEGENDA
+// LLEGENDA AMB ELS VALORS ORIGINALS RECUPERATS
 var legend = L.control({ position: "bottomright" });
 legend.onAdd = function() {
     this._div = L.DomUtil.create("div", "legend-box");
     this.update();
     return this._div;
 };
+
 legend.update = function() {
     if (mode === "radar") {
-        this._div.innerHTML = `<b>Intensitat (mm/h)</b><div class="colorbar-radar"></div><div style="display:flex; justify-content: space-between; font-size:9px; margin-top:2px;"><span>0.2</span><span>15</span><span>150+</span></div>`;
+        this._div.innerHTML = `<b>Intensitat (mm/h)</b><br>
+            <div class="colorbar-radar"></div>
+            <div style="display:flex; justify-content: space-between; width:100%; font-size:10px; margin-top:2px;">
+                <span>0.2</span><span>15</span><span>150+</span>
+            </div>`;
     } else {
-        this._div.innerHTML = `<b>Acumulat (mm)</b><div class="colorbar-daily"></div><div style="display:flex; justify-content: space-between; font-size:9px; margin-top:2px;"><span>0.1</span><span>10</span><span>200</span></div>`;
+        this._div.innerHTML = `
+            <div style="width: 100%;">
+                <b>Acumulat Diari (mm) <small>(log)</small></b><br>
+                <div class="colorbar-daily"></div>
+                <div style="position: relative; width: 100%; height: 6px;">
+                    <span style="position: absolute; left: 0%; border-left: 1px solid #444; height: 100%;"></span>
+                    <span style="position: absolute; left: 30.3%; border-left: 1px solid #444; height: 100%;"></span>
+                    <span style="position: absolute; left: 39.4%; border-left: 1px solid #444; height: 100%;"></span>
+                    <span style="position: absolute; left: 51.5%; border-left: 1px solid #444; height: 100%;"></span>
+                    <span style="position: absolute; left: 60.6%; border-left: 1px solid #444; height: 100%;"></span>
+                    <span style="position: absolute; left: 69.7%; border-left: 1px solid #444; height: 100%;"></span>
+                    <span style="position: absolute; left: 81.8%; border-left: 1px solid #444; height: 100%;"></span>
+                    <span style="position: absolute; left: 90.9%; border-left: 1px solid #444; height: 100%;"></span>
+                    <span style="position: absolute; left: 100%; border-left: 1px solid #444; height: 100%; margin-left:-1px;"></span>
+                </div>
+                <div style="position: relative; width: 100%; height: 15px; font-size: 10px; font-family: sans-serif; margin-top: 2px;">
+                    <span style="position: absolute; left: 0%; transform: translateX(-50%);">0.1</span>
+                    <span style="position: absolute; left: 30.3%; transform: translateX(-50%);">1</span>
+                    <span style="position: absolute; left: 39.4%; transform: translateX(-50%);">2</span>
+                    <span style="position: absolute; left: 51.5%; transform: translateX(-50%);">5</span>
+                    <span style="position: absolute; left: 60.6%; transform: translateX(-50%);">10</span>
+                    <span style="position: absolute; left: 69.7%; transform: translateX(-50%);">20</span>
+                    <span style="position: absolute; left: 81.8%; transform: translateX(-50%);">50</span>
+                    <span style="position: absolute; left: 90.9%; transform: translateX(-50%);">100</span>
+                    <span style="position: absolute; left: 100%; transform: translateX(-100%);">200</span>
+                </div>
+            </div>`;
     }
 };
 legend.addTo(map);
 
-// AMAGAR / MOSTRAR MENÚ (LOGICA CORREGIDA)
+// AMAGAR / MOSTRAR MENÚ
 const mainControl = document.getElementById("mainControl");
 const toggleBtn = document.getElementById("toggleMenu");
 const legendBox = document.querySelector(".legend-box");
@@ -190,28 +213,21 @@ const legendBox = document.querySelector(".legend-box");
 toggleBtn.onclick = () => {
     const isMinimized = mainControl.classList.toggle("minimized");
     toggleBtn.innerHTML = isMinimized ? "☰" : "✖";
-    
     if (window.innerWidth <= 600) {
-        // Al mòbil, movem el botó i la llegenda
         toggleBtn.classList.toggle("on-top", !isMinimized);
-        if (legendBox) {
-            legendBox.classList.toggle("lowered", isMinimized);
-        }
+        if (legendBox) legendBox.classList.toggle("lowered", isMinimized);
     }
 };
 
 // GPS
-document.getElementById("btnLocate").onclick = () => {
-    map.locate({setView: true, maxZoom: 10});
-};
+document.getElementById("btnLocate").onclick = () => map.locate({setView: true, maxZoom: 10});
 map.on('locationfound', (e) => {
     if (userMarker) map.removeLayer(userMarker);
     userMarker = L.circleMarker(e.latlng, { radius: 8, color: 'white', fillColor: '#007bff', fillOpacity: 1, weight: 2 }).addTo(map);
     userMarker.bindPopup("Ets aquí").openPopup();
 });
-map.on('locationerror', () => alert("Permís denegat o error de GPS."));
 
-// MOTOR DE CÀRREGA
+// CÀRREGA IMATGES
 async function fetchBounds() {
     try {
         const response = await fetch('bounds.json');
@@ -226,9 +242,8 @@ function tryLoadImage(date, suffixIndex = 0) {
     const Y = date.getUTCFullYear(), M = String(date.getUTCMonth() + 1).padStart(2, '0'), D = String(date.getUTCDate()).padStart(2, '0');
     const h = String(date.getUTCHours()).padStart(2, '0'), m = String(date.getUTCMinutes()).padStart(2, '0');
     let path = (mode === "radar") ? `imatges_radar/radar_${Y}${M}${D}_${h}${m}${suffixes[suffixIndex]}.png` : `acumulats_diaris/acumulat_${Y}${M}${D}.png`;
-    
     const statusMsg = document.getElementById("statusMsg");
-    statusMsg.textContent = "Cercant dades...";
+    statusMsg.textContent = "Cercant...";
     const img = new Image();
     img.onload = () => {
         if (overlay) map.removeLayer(overlay);
@@ -245,13 +260,9 @@ function tryLoadImage(date, suffixIndex = 0) {
 
 function update() { legend.update(); tryLoadImage(mode === "radar" ? currentRadarTime : new Date(document.getElementById("datePicker").value)); }
 
-// TABS
-document.getElementById("tabRadar").onclick = () => { 
-    mode = "radar"; toggleTabs("tabRadar", "tabDaily", "radarControls", "dailyControls"); 
-};
-document.getElementById("tabDaily").onclick = () => { 
-    mode = "daily"; toggleTabs("tabDaily", "tabRadar", "dailyControls", "radarControls"); 
-};
+// TABS I ESDEVENIMENTS
+document.getElementById("tabRadar").onclick = () => { mode = "radar"; toggleTabs("tabRadar", "tabDaily", "radarControls", "dailyControls"); };
+document.getElementById("tabDaily").onclick = () => { mode = "daily"; toggleTabs("tabDaily", "tabRadar", "dailyControls", "radarControls"); };
 
 function toggleTabs(activeId, inactiveId, showCtrl, hideCtrl) {
     document.getElementById(activeId).classList.add("active"); document.getElementById(inactiveId).classList.remove("active");
@@ -259,7 +270,6 @@ function toggleTabs(activeId, inactiveId, showCtrl, hideCtrl) {
     update();
 }
 
-// NAVEGACIÓ
 document.getElementById("prevRadar").onclick = () => { currentRadarTime.setMinutes(currentRadarTime.getMinutes() - 12); update(); };
 document.getElementById("nextRadar").onclick = () => { currentRadarTime.setMinutes(currentRadarTime.getMinutes() + 12); update(); };
 
