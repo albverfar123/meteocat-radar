@@ -46,37 +46,50 @@
         .status { font-size: 12px; margin-top: 5px; color: #444; font-weight: bold; text-align: center; }
 
         /* LLEGENDA (Mòbil: Flotant sobre els controls) */
-        /* ================= ADAPTACIÓ PER A MÒBILS ================= */
+       /* ================= ADAPTACIÓ PER A MÒBILS (Fins a 600px) ================= */
         @media (max-width: 600px) {
+            /* El panell de control blanc de sota */
             .control {
-                top: auto; bottom: 0; left: 0; right: 0;
-                width: 100%; border-radius: 15px 15px 0 0;
-                padding: 10px; box-sizing: border-box;
-                border-top: 1px solid #ddd;
+                top: auto !important; 
+                bottom: 0 !important; 
+                left: 0 !important; 
+                right: 0 !important;
+                width: 100% !important; 
+                border-radius: 20px 20px 0 0 !important;
+                padding: 15px !important; 
+                box-sizing: border-box;
             }
         
+            /* La llegenda de colors */
             .legend-box {
-                /* Barra més petita i centrada */
-                width: 240px !important; 
+                position: fixed !important; /* Canviem a fixed per assegurar posició a pantalla */
+                width: 220px !important;    /* Una mica més petita com demanaves */
                 left: 50% !important;
                 transform: translateX(-50%) !important;
-                bottom: 180px !important; /* Distància respecte al panell de control */
-                top: auto !important; /* Assegura que no hi ha conflictes de top */
-                padding: 8px 12px;
-                font-size: 10px;
-                z-index: 1400; /* Per sota del panell d'opacitat/status si cal */
+                
+                /* POSICIÓ VERTICAL: 
+                   Pujant-lo des de baix (bottom). 
+                   Si el panell fa uns 140px, posem 150px perquè quedi just a sobre. */
+                bottom: 155px !important; 
+                top: auto !important; 
+                
+                padding: 6px 10px !important;
+                font-size: 10px !important;
+                z-index: 1600 !important; /* Per sobre de tot */
             }
         
+            /* Reduïm la barra de colors interna */
             .colorbar-radar, .colorbar-daily {
-                height: 12px; /* Una mica més prima */
+                height: 10px !important;
             }
         
-            .nav-arrows button {
-                padding: 10px;
-                font-size: 14px;
+            /* Fem que el mapa no s'amagui sota el panell de control completament */
+            #map { 
+                bottom: 140px !important; 
             }
         
-            #map { bottom: 130px; }
+            /* Amaguem textos llargs en mòbil per guanyar espai vertical */
+            .info-box { display: none !important; }
         }
 
         /* RESPONSIVE: ESCRIPTORI */
