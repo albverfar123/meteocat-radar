@@ -15,27 +15,37 @@
             background: #222; color: white; display: flex; align-items: center;
             padding: 0 16px; z-index: 2000; font-family: sans-serif;
         }
-        .tab { margin-right: 18px; cursor: pointer; opacity: 0.7; }
-        .tab.active { opacity: 1; font-weight: bold; }
+        .tab { margin-right: 18px; cursor: pointer; opacity: 0.7; transition: 0.3s; }
+        .tab.active { opacity: 1; font-weight: bold; border-bottom: 2px solid #007bff; }
 
         /* MAP */
-        #map { position: absolute; top: 48px; bottom: 0; width: 100%; background: #ddd; }
+        #map { position: absolute; top: 48px; bottom: 0; width: 100%; background: #f0f0f0; }
 
         /* CONTROLS */
         .control {
             position: absolute; top: 60px; right: 10px; background: white;
             padding: 14px; z-index: 1500; border-radius: 8px;
             font-size: 13px; font-family: sans-serif; width: 250px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
         }
         .nav-arrows { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
-        .nav-arrows button { cursor: pointer; padding: 5px 10px; flex-grow: 1; }
+        .nav-arrows button { cursor: pointer; padding: 5px 10px; flex-grow: 1; border: 1px solid #ccc; border-radius: 4px; background: #f9f9f9; }
+        .nav-arrows button:hover { background: #e9e9e9; }
+        
         .status { font-size: 11px; margin-top: 8px; color: #444; font-weight: bold; }
-        .legend-box { background: white; padding: 10px; border-radius: 8px; font-size: 12px; }
+        
+        /* LLEGENDA */
+        .legend-box { 
+            background: white; padding: 10px; border-radius: 8px; 
+            font-size: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            line-height: 18px; font-family: sans-serif;
+        }
+        .legend-img { width: 200px; height: 20px; display: block; margin-top: 5px; border-radius: 2px; }
         
         .time-display { 
             display: block; margin-top: 5px; font-family: monospace; 
-            background: #eee; padding: 4px; border-radius: 4px; text-align: center;
+            background: #eee; padding: 6px; border-radius: 4px; text-align: center;
+            font-weight: bold; color: #333;
         }
     </style>
 </head>
@@ -52,23 +62,22 @@
     <div id="radarControls">
         <b>Navegació Radar:</b><br>
         <div class="nav-arrows">
-            <button id="prevRadar">◀ Anterior</button>
-            <button id="nextRadar">Següent ▶</button>
+            <button id="prevRadar">◀ Ant.</button>
+            <button id="nextRadar">Seg. ▶</button>
         </div>
-        <small style="color: #666;">(Salts de 12 minuts aproximadament)</small>
-        <div class="time-display" id="radarTime">Cercant dades...</div>
+        <div class="time-display" id="radarTime">---</div>
     </div>
 
     <div id="dailyControls" style="display:none;">
-        <b>Calendari:</b><br>
-        <input id="datePicker" type="date" style="width: 100%; margin-top:5px;">
+        <b>Calendari Acumulat:</b><br>
+        <input id="datePicker" type="date" style="width: 100%; margin-top:5px; padding: 4px;">
         <div class="nav-arrows">
-            <button id="prevDay">◀</button>
-            <button id="nextDay">▶</button>
+            <button id="prevDay">◀ Dia</button>
+            <button id="nextDay">Dia ▶</button>
         </div>
     </div>
 
-    <div class="status" id="statusMsg">Iniciant...</div>
+    <div class="status" id="statusMsg">Carregant mapa...</div>
 
     <br>
     Opacitat:<br>
@@ -83,80 +92,98 @@
 // =================================================
 let mode = "radar";
 let currentRadarTime = new Date();
-// Arredonim a l'últim interval de 12 minuts (aprox :07 o :55)
-currentRadarTime.setMinutes(Math.floor(currentRadarTime.getMinutes() / 12) * 12 + 7);
+// Ajustem l'hora inicial als 12 minuts passats
+currentRadarTime.setMinutes(Math.floor(currentRadarTime.getMinutes() / 12) * 12);
 
-const imageBounds = [
-    [40.4, 0.0], // Sud-Oest (Lat, Lon)
-    [43.1, 3.5]  // Nord-Est (Lat, Lon)
-];
+const imageBounds = [[40.4, 0.0], [43.1, 3.5]];
 
 // =================================================
-// MAPA
+// MAPA I LLEGENDA
 // =================================================
 var map = L.map('map').setView([41.7, 1.8], 7);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 
 var overlay = null;
+var legend = L.control({ position: "bottomright" });
+
+legend.onAdd = function() {
+    this._div = L.DomUtil.create("div", "legend-box");
+    this.update();
+    return this._div;
+};
+
+legend.update = function() {
+    if (mode === "radar") {
+        this._div.innerHTML = `<b>Intensitat (mm/h)</b><br>
+            <div style="background: linear-gradient(to right, #8000FF, #0000FF, #00FFFF, #00FF00, #FFFF00, #FF0000, #FF00FF); height:15px; width:200px; margin-top:5px; border:1px solid #999;"></div>
+            <div style="display:flex; justify-content: space-between; width:200px; font-size:10px;">
+                <span>0.2</span><span>15</span><span>150+</span>
+            </div>`;
+    } else {
+        this._div.innerHTML = `<b>Acumulat Diari (mm)</b><br>
+            <div style="background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); height:15px; width:200px; margin-top:5px; border:1px solid #999;"></div>
+            <div style="display:flex; justify-content: space-between; width:200px; font-size:10px;">
+                <span>0</span><span>50</span><span>100+</span>
+            </div>`;
+    }
+};
+legend.addTo(map);
 
 // =================================================
-// LOGICA DE CÀRREGA
+// LÒGICA DE CÀRREGA AMB REINTENT (:07 -> :00)
 // =================================================
 
-function formatToPath(date, isDaily = false) {
+function tryLoadImage(date, suffixIndex = 0) {
+    const suffixes = ["07", "00"];
     const Y = date.getUTCFullYear();
     const M = String(date.getUTCMonth() + 1).padStart(2, '0');
     const D = String(date.getUTCDate()).padStart(2, '0');
     const h = String(date.getUTCHours()).padStart(2, '0');
     const m = String(date.getUTCMinutes()).padStart(2, '0');
     
-    if (isDaily) {
-        // Carpeta: acumulats_diaris/acumulat_YYYYMMDD.png
-        return `acumulats_diaris/acumulat_${Y}${M}${D}.png`;
-    } else {
-        // Carpeta: imatges_radar/radar_YYYYMMDD_HHMM07.png (intentem :07 o :00)
-        // Nota: Com que no sabem exactament si és :07 o :00, l'script 
-        // de Python ens ho dirà. Aquí provem el format estàndard:
-        return `imatges_radar/radar_${Y}${M}${D}_${h}${m}07.png`;
-    }
-}
+    let path = (mode === "radar") 
+        ? `imatges_radar/radar_${Y}${M}${D}_${h}${m}${suffixes[suffixIndex]}.png`
+        : `acumulats_diaris/acumulat_${Y}${M}${D}.png`;
 
-function loadLayer(path, label) {
-    statusMsg.textContent = "Buscant: " + path.split('/').pop();
+    statusMsg.textContent = "Cercant: " + path.split('/').pop();
     
     const img = new Image();
     img.onload = function() {
         if (overlay) map.removeLayer(overlay);
         overlay = L.imageOverlay(path, imageBounds, { opacity: opacitySlider.value }).addTo(map);
         statusMsg.style.color = "green";
-        statusMsg.textContent = "✔ Connectat";
-        if(mode === "radar") document.getElementById("radarTime").textContent = label;
+        statusMsg.textContent = "✔ Dades carregades";
+        if(mode === "radar") document.getElementById("radarTime").textContent = `${h}:${m} UTC`;
     };
+    
     img.onerror = function() {
-        // Si falla el :07, podríem provar el :00 aquí, o mostrar error
-        statusMsg.style.color = "red";
-        statusMsg.textContent = "✖ No trobat";
+        // Si estem en mode radar i encara ens queda el suffix :00 per provar
+        if (mode === "radar" && suffixIndex === 0) {
+            tryLoadImage(date, 1);
+        } else {
+            statusMsg.style.color = "red";
+            statusMsg.textContent = "✖ No hi ha dades";
+            if (overlay) map.removeLayer(overlay);
+            overlay = null;
+        }
     };
     img.src = path;
 }
 
 function update() {
+    legend.update();
     if (mode === "radar") {
-        const path = formatToPath(currentRadarTime, false);
-        const label = currentRadarTime.toISOString().replace('T',' ').substring(0,16) + " UTC";
-        loadLayer(path, label);
+        tryLoadImage(currentRadarTime);
     } else {
         const d = new Date(datePicker.value);
-        const path = formatToPath(d, true);
-        loadLayer(path, d.toDateString());
+        tryLoadImage(d);
     }
 }
 
 // =================================================
-// EVENTS
+// ESDEVENIMENTS
 // =================================================
 
-// Canvi de Pestanyes
 document.getElementById("tabRadar").onclick = () => {
     mode = "radar";
     document.getElementById("tabRadar").classList.add("active");
@@ -175,7 +202,6 @@ document.getElementById("tabDaily").onclick = () => {
     update();
 };
 
-// Navegació Radar (12 minuts)
 document.getElementById("prevRadar").onclick = () => {
     currentRadarTime.setMinutes(currentRadarTime.getMinutes() - 12);
     update();
@@ -185,31 +211,26 @@ document.getElementById("nextRadar").onclick = () => {
     update();
 };
 
-// Navegació Diària
 const datePicker = document.getElementById("datePicker");
-datePicker.value = new Date().toISOString().slice(0,10);
+// Per defecte, l'acumulat d'ahir
+let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+datePicker.value = yesterday.toISOString().slice(0,10);
 datePicker.onchange = () => update();
 
 document.getElementById("prevDay").onclick = () => {
-    let d = new Date(datePicker.value);
-    d.setDate(d.getDate() - 1);
+    let d = new Date(datePicker.value); d.setDate(d.getDate() - 1);
     datePicker.value = d.toISOString().slice(0,10);
     update();
 };
 document.getElementById("nextDay").onclick = () => {
-    let d = new Date(datePicker.value);
-    d.setDate(d.getDate() + 1);
+    let d = new Date(datePicker.value); d.setDate(d.getDate() + 1);
     datePicker.value = d.toISOString().slice(0,10);
     update();
 };
 
-// Opacitat
 const opacitySlider = document.getElementById("opacitySlider");
-opacitySlider.oninput = (e) => {
-    if (overlay) overlay.setOpacity(e.target.value);
-};
+opacitySlider.oninput = (e) => { if (overlay) overlay.setOpacity(e.target.value); };
 
-// Inici
 update();
 
 </script>
