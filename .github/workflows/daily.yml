@@ -27,6 +27,6 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add acumulats_diaris/*.nc
+          git add acumulats_diaris/*.nc acumulats_diaris/*.png
           git commit -m "Acumulat diari generat" || exit 0
           git push
