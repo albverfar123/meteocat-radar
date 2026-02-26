@@ -268,6 +268,15 @@ function update() {
     if (mode === "radar") { tryLoadImage(currentRadarTime); } 
     else { tryLoadImage(new Date(datePicker.value)); }
 }
+    // Forçar la posició de la llegenda al mòbil via JS si el CSS falla
+if (window.innerWidth < 600) {
+    var legendDiv = document.querySelector('.legend-box');
+    if (legendDiv) {
+        legendDiv.style.bottom = "190px"; 
+        legendDiv.style.left = "50%";
+        legendDiv.style.transform = "translateX(-50%)";
+    }
+}
 
 // =================================================
 // ESDEVENIMENTS
