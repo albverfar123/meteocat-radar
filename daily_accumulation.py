@@ -52,26 +52,44 @@ def calculate_daily():
     generate_daily_png(total_precip, lon, lat, ieri)
 
 def generate_daily_png(data, lon, lat, date_str):
-    # Creem la figura sense eixos ni marges per tenir només la "capa" de pluja
+    # Creem la figura. La mida es passa com a (amplada, alçada) en polzades
+    # data.shape[1] és l'amplada (columnes), data.shape[0] és l'alçada (files)
     fig = plt.figure(frameon=False)
-    fig.set_size_inches(width=data.shape[1]/100, height=data.shape[0]/100)
+    
+    # CORRECCIÓ: Passem els valors directament sense 'width=' ni 'height='
+    fig.set_size_inches(data.shape[1]/100, data.shape[0]/100)
+    
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
 
-    # Definim l'escala de colors (podes canviar 'viridis' per 'YlGnBu' o 'turbo')
-    # vmin=0.1 fa que els valors de 0 siguin transparents si usem set_bad
+    # Escala de colors per a l'acumulat
     cmap = plt.get_cmap('turbo').copy()
     cmap.set_under(alpha=0) 
 
-    # Pintem les dades. Fem servir vmin=0.1 per no pintar zones on no ha plogut
-    ax.pcolormesh(lon, lat, data, cmap=cmap, vmin=0.1, vmax=40, shading='auto')
+    # Dibuixem les dades
+    # Fem servir pcolormesh per assegurar que cada cel·la estigui al seu lloc
+    ax.pcolormesh(lon, lat, data, cmap=cmap, vmin=0.1, vmax=100, shading='auto')
 
+    # Guardem el PNG i també el bounds.json perquè el visor sàpiga on posar-lo
     png_out_path = os.path.join(DAILY_DIR, f"acumulat_{date_str}.png")
     fig.savefig(png_out_path, transparent=True, dpi=100)
     plt.close(fig)
     print(f"🎨 PNG diari guardat: {png_out_path}")
 
+    # APROFITEM PER GUARDAR EL BOUNDS.JSON TAMBÉ AQUÍ
+    bounds_data = {
+        "lat_min": float(lat.min()),
+        "lat_max": float(lat.max()),
+        "lon_min": float(lon.min()),
+        "lon_max": float(lon.max())
+    }
+    with open("bounds.json", "w") as f:
+        import json
+        json.dump(bounds_data, f)
+    print(f"📍 Coordenades de l'acumulat guardades a bounds.json")
+
 if __name__ == "__main__":
     calculate_daily()
+
 
