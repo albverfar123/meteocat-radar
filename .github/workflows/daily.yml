@@ -1,8 +1,6 @@
 name: Acumulat Diari Radar
 
 on:
-  schedule:
-    - cron: '30 0 * * *' # Cada dia a les 00:30 UTC
   workflow_dispatch:
 
 jobs:
