@@ -1,296 +1,254 @@
 <!DOCTYPE html>
-<html>
+<html lang="ca">
 <head>
     <meta charset="utf-8" />
-    <title>Visor Radar Meteocat</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Visor Precipitació Acumulada</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
-        html, body { height: 100%; margin: 0; }
-        
-        /* HEADER */
+        html, body { height: 100%; margin: 0; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        /* ================= HEADER ================= */
         .header {
-            position: absolute; top: 0; left: 0; right: 0; height: 48px;
-            background: #222; color: white; display: flex; align-items: center;
-            padding: 0 16px; z-index: 2000; font-family: sans-serif;
+            position: absolute; top: 0; left: 0; right: 0; height: 50px;
+            background: #1a1a1a; color: white; display: flex; align-items: center;
+            padding: 0 16px; z-index: 2000; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
-        .tab { margin-right: 18px; cursor: pointer; opacity: 0.7; transition: 0.3s; }
-        .tab.active { opacity: 1; font-weight: bold; border-bottom: 2px solid #007bff; }
+        .tab { margin-right: 20px; cursor: pointer; opacity: 0.6; padding: 14px 0; transition: 0.3s; font-size: 14px; white-space: nowrap; }
+        .tab.active { opacity: 1; font-weight: bold; border-bottom: 3px solid #007bff; }
 
-        /* MAP */
-        #map { position: absolute; top: 48px; bottom: 0; width: 100%; background: #f0f0f0; }
+        /* ================= MAP ================= */
+        #map { position: absolute; top: 50px; bottom: 0; width: 100%; background: #ddd; }
 
-        /* CONTROLS */
+        /* ================= CONTROL (Base Mòbil) ================= */
         .control {
-            position: absolute; top: 60px; right: 10px; background: white;
-            padding: 14px; z-index: 1500; border-radius: 8px;
-            font-size: 13px; font-family: sans-serif; width: 250px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: white; padding: 15px; z-index: 1500;
+            border-radius: 20px 20px 0 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            display: flex; flex-direction: column; gap: 8px;
         }
-        .nav-arrows { display: flex; gap: 6px; margin-top: 8px; align-items: center; }
-        .nav-arrows button { cursor: pointer; padding: 5px 10px; flex-grow: 1; border: 1px solid #ccc; border-radius: 4px; background: #f9f9f9; }
-        .nav-arrows button:hover { background: #e9e9e9; }
-        
-        .status { font-size: 11px; margin-top: 8px; color: #444; font-weight: bold; }
-        
-        /* LLEGENDA */
-        .legend-box { 
-            background: white; padding: 10px; border-radius: 8px; 
-            font-size: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            line-height: 18px; font-family: sans-serif;
+
+        /* ================= LLEGENDA (Base Mòbil) ================= */
+        .legend-box {
+            background: rgba(255, 255, 255, 0.95); padding: 12px; border-radius: 8px;
+            font-size: 11px; width: 280px; box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: absolute; bottom: 180px; left: 50%; transform: translateX(-50%);
+            z-index: 1400; pointer-events: none;
         }
-        .legend-img { width: 200px; height: 20px; display: block; margin-top: 5px; border-radius: 2px; }
-        
-        .time-display { 
-            display: block; margin-top: 5px; font-family: monospace; 
-            background: #eee; padding: 6px; border-radius: 4px; text-align: center;
-            font-weight: bold; color: #333;
+
+        /* Elements de la llegenda */
+        .colorbar { height: 16px; width: 100%; border: 1px solid #777; margin-top: 6px; 
+            background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); }
+        .ticks-container { position: relative; width: 100%; height: 5px; }
+        .tick { position: absolute; border-left: 1px solid #444; height: 100%; }
+        .labels-container { position: relative; width: 100%; height: 14px; margin-top: 2px; }
+        .label { position: absolute; transform: translateX(-50%); font-size: 9px; }
+
+        /* Botons i Inputs */
+        .nav-arrows { display: flex; gap: 8px; }
+        .nav-arrows button { flex: 1; padding: 12px; cursor: pointer; border: 1px solid #ccc; border-radius: 8px; background: #f8f9fa; font-size: 16px; }
+        input[type="date"] { padding: 10px; border: 1px solid #ccc; border-radius: 8px; width: 100%; box-sizing: border-box; font-size: 16px; }
+        .info-box { display: none; } /* Amagat en mòbil per espai */
+        .status { font-size: 12px; color: #444; text-align: center; font-weight: bold; }
+        .week-label { font-size: 13px; color: #007bff; text-align: center; font-weight: bold; }
+
+        /* ================= ADAPTACIÓ ESCRIPTORI (Pantalles grans) ================= */
+        @media (min-width: 601px) {
+            .control {
+                top: 70px; right: 20px; bottom: auto; left: auto;
+                width: 260px; border-radius: 12px; box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            }
+            .legend-box {
+                bottom: 30px; right: 20px; left: auto; transform: none; width: 300px;
+            }
+            .info-box { display: block; margin-top: 10px; padding: 10px; background: #f1f3f5; border-radius: 8px; font-size: 11px; line-height: 1.4; }
+            .nav-arrows button { padding: 6px; font-size: 14px; }
+            input[type="date"] { font-size: 14px; }
+            #map { bottom: 0; }
         }
     </style>
 </head>
+
 <body>
 
 <div class="header">
-    <div class="tab active" id="tabRadar">Radar (12 min)</div>
-    <div class="tab" id="tabDaily">Acumulat Diari</div>
+    <div class="tab active" id="tabDaily">Diari</div>
+    <div class="tab" id="tabWeekly">Setmanal</div>
+    <div class="tab" id="tabReadme" onclick="alert('Acumulats basats en dades de radar.')">Info</div>
 </div>
 
 <div id="map"></div>
 
 <div class="control">
-    <div id="radarControls">
-        <b>Navegació Radar:</b><br>
+    <div id="dailyControls">
+        <input id="datePicker" type="date">
         <div class="nav-arrows">
-            <button id="prevRadar">◀ Ant.</button>
-            <button id="nextRadar">Seg. ▶</button>
+            <button id="prevDay">◀</button>
+            <button id="nextDay">▶</button>
         </div>
-        <div class="time-display" id="radarTime">---</div>
+        <div class="info-box"><b>Acumulat 24h:</b> Escala logarítmica de 0.1 a 200 mm. Ideal per detectar pluges febles.</div>
     </div>
 
-    <div id="dailyControls" style="display:none;">
-        <b>Calendari Acumulat:</b><br>
-        <input id="datePicker" type="date" style="width: 100%; margin-top:5px; padding: 4px;">
+    <div id="weeklyControls" style="display:none;">
+        <input id="weekPicker" type="date">
         <div class="nav-arrows">
-            <button id="prevDay">◀ Dia</button>
-            <button id="nextDay">Dia ▶</button>
+            <button id="prevWeek">◀</button>
+            <button id="nextWeek">▶</button>
         </div>
+        <div class="week-label" id="weekLabel"></div>
+        <div class="info-box"><b>Acumulat 7 dies:</b> Suma de dilluns a diumenge. Escala fins a 300 mm.</div>
     </div>
 
-    <div class="status" id="statusMsg">Carregant mapa...</div>
-
-    <br>
-    Opacitat:<br>
-    <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.8" style="width:100%;">
+    <div class="status" id="statusMsg">Carregant dades...</div>
+    
+    <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:11px">Opacitat:</span>
+        <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.7" style="flex:1">
+    </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
 // =================================================
-// CONFIGURACIÓ DINÀMICA
+// CONFIGURACIÓ
 // =================================================
-let mode = "radar";
-let currentRadarTime = new Date();
-currentRadarTime.setMinutes(Math.floor(currentRadarTime.getMinutes() / 12) * 12);
+let mode = "daily";
+const imageBounds = [[40.0012309, -0.0015486], [43.1012309, 3.4984514]];
 
-// Límits per defecte (mentre es carreguen els reals)
-let imageBounds = [[40.0, 0.0], [43.5, 3.8]]; 
-
-// FUNCIÓ PER LLEGIR ELS LÍMITS REALS
-async function fetchBounds() {
-    try {
-        const response = await fetch('bounds.json');
-        const data = await response.json();
-        imageBounds = [
-            [data.lat_min, data.lon_min], // Sud-Oest
-            [data.lat_max, data.lon_max]  // Nord-Est
-        ];
-        console.log("📍 Límits actualitzats des de JSON:", imageBounds);
-        update(); // Recarreguem la capa amb els límits bons
-    } catch (e) {
-        console.error("No s'ha pogut carregar bounds.json, usant defecte", e);
-    }
+// Funció per calcular posició logarítmica exacta
+function getLogPos(val, min, max) {
+    return ((Math.log10(val) - Math.log10(min)) / (Math.log10(max) - Math.log10(min))) * 100;
 }
 
-// Substitueix la funció tryLoadImage per utilitzar els nous imageBounds
-function tryLoadImage(date, suffixIndex = 0) {
-    // ... (la resta de la funció és igual, però ara usarà la variable imageBounds actualitzada)
-    // Assegura't que dins de img.onload fas servir la variable global imageBounds
-    if (overlay) map.removeLayer(overlay);
-    overlay = L.imageOverlay(path, imageBounds, { opacity: opacitySlider.value }).addTo(map);
-    // ...
-}
-
-// Al final del script, crida a la funció
-fetchBounds();
-
 // =================================================
-// MAPA I LLEGENDA
+// MAPA
 // =================================================
-var map = L.map('map').setView([41.7, 1.8], 7);
-L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
+var map = L.map('map', { zoomControl: false }).setView([41.5, 1.8], 7);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+L.control.zoom({ position: 'topright' }).addTo(map);
 
 var overlay = null;
-var legend = L.control({ position: "bottomright" });
+var legendControl = L.control({ position: "bottomright" });
 
-legend.onAdd = function() {
+legendControl.onAdd = function () {
     this._div = L.DomUtil.create("div", "legend-box");
     this.update();
     return this._div;
 };
 
-legend.update = function() {
-    if (mode === "radar") {
-        this._div.innerHTML = `<b>Intensitat (mm/h)</b><br>
-            <div style="background: linear-gradient(to right, #8000FF, #0000FF, #00FFFF, #00FF00, #FFFF00, #FF0000, #FF00FF); height:15px; width:200px; margin-top:5px; border:1px solid #999;"></div>
-            <div style="display:flex; justify-content: space-between; width:200px; font-size:10px;">
-                <span>0.2</span><span>15</span><span>150+</span>
-            </div>`;
+legendControl.update = function () {
+    let min = 0.1, max, vals;
+    if (mode === "daily") {
+        max = 200; vals = [0.1, 1, 2, 5, 10, 20, 50, 100, 200];
     } else {
-        // Escala Logarítmica de 0.1 a 200 mm (Barra ampliada a 260px)
-        this._div.innerHTML = `
-            <div style="width: 300px;">
-                <b>Acumulat Diari (mm) <small>(log)</small></b><br>
-                
-                <div style="background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); 
-                     height:18px; width:100%; margin-top:8px; border:1px solid #777;"></div>
-                
-                <div style="position: relative; width: 100%; height: 6px;">
-                    <span style="position: absolute; left: 0%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 30.3%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 39.4%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 51.5%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 60.6%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 69.7%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 81.8%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 90.9%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 100%; border-left: 1px solid #444; height: 100%; margin-left:-1px;"></span>
-                </div>
-
-                <div style="position: relative; width: 100%; height: 15px; font-size: 10px; font-family: sans-serif; margin-top: 2px;">
-                    <span style="position: absolute; left: 0%; transform: translateX(-50%);">0.1</span>
-                    <span style="position: absolute; left: 30.3%; transform: translateX(-50%);">1</span>
-                    <span style="position: absolute; left: 39.4%; transform: translateX(-50%);">2</span>
-                    <span style="position: absolute; left: 51.5%; transform: translateX(-50%);">5</span>
-                    <span style="position: absolute; left: 60.6%; transform: translateX(-50%);">10</span>
-                    <span style="position: absolute; left: 69.7%; transform: translateX(-50%);">20</span>
-                    <span style="position: absolute; left: 81.8%; transform: translateX(-50%);">50</span>
-                    <span style="position: absolute; left: 90.9%; transform: translateX(-50%);">100</span>
-                    <span style="position: absolute; left: 100%; transform: translateX(-100%);">200</span>
-                </div>
-
-                <div style="font-size: 9px; color: #777; margin-top: 8px; font-style: italic; text-align: center;">
-                    Escala logarítmica: realça gradients en pluges febles
-                </div>
-            </div>`;
+        max = 300; vals = [0.1, 3, 10, 25, 50, 100, 200, 300];
     }
+
+    let ticksHtml = vals.map(v => `<span class="tick" style="left: ${getLogPos(v, min, max)}%"></span>`).join('');
+    let labelsHtml = vals.map(v => {
+        let style = `left: ${getLogPos(v, min, max)}%;`;
+        if (v === max) style += "transform: translateX(-100%);";
+        return `<span class="label" style="${style}">${v}</span>`;
+    }).join('');
+
+    this._div.innerHTML = `
+        <b style="display:block; margin-bottom:4px;">Precipitació (mm) ${mode==='daily'?'Diària':'Setmanal'}</b>
+        <div class="colorbar"></div>
+        <div class="ticks-container">${ticksHtml}</div>
+        <div class="labels-container">${labelsHtml}</div>
+    `;
 };
-legend.addTo(map);
+legendControl.addTo(map);
 
 // =================================================
-// LÒGICA DE CÀRREGA AMB REINTENT (:07 -> :00)
+// LÒGICA DE CÀRREGA
 // =================================================
-
-function tryLoadImage(date, suffixIndex = 0) {
-    const suffixes = ["07", "00"];
-    const Y = date.getUTCFullYear();
-    const M = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const D = String(date.getUTCDate()).padStart(2, '0');
-    const h = String(date.getUTCHours()).padStart(2, '0');
-    const m = String(date.getUTCMinutes()).padStart(2, '0');
-    
-    let path = (mode === "radar") 
-        ? `imatges_radar/radar_${Y}${M}${D}_${h}${m}${suffixes[suffixIndex]}.png`
-        : `acumulats_diaris/acumulat_${Y}${M}${D}.png`;
-
-    statusMsg.textContent = "Cercant: " + path.split('/').pop();
-    
+function updateOverlay(path, errorMsg) {
+    statusMsg.textContent = "Buscant imatge...";
     const img = new Image();
-    img.onload = function() {
+    img.onload = () => {
         if (overlay) map.removeLayer(overlay);
         overlay = L.imageOverlay(path, imageBounds, { opacity: opacitySlider.value }).addTo(map);
-        statusMsg.style.color = "green";
-        statusMsg.textContent = "✔ Dades carregades";
-        if(mode === "radar") document.getElementById("radarTime").textContent = `${h}:${m} UTC`;
+        statusMsg.style.color = "#28a745";
+        statusMsg.textContent = "✔ Dades OK";
     };
-    
-    img.onerror = function() {
-        // Si estem en mode radar i encara ens queda el suffix :00 per provar
-        if (mode === "radar" && suffixIndex === 0) {
-            tryLoadImage(date, 1);
-        } else {
-            statusMsg.style.color = "red";
-            statusMsg.textContent = "✖ No hi ha dades";
-            if (overlay) map.removeLayer(overlay);
-            overlay = null;
-        }
+    img.onerror = () => {
+        if (overlay) map.removeLayer(overlay);
+        statusMsg.style.color = "#dc3545";
+        statusMsg.textContent = errorMsg;
     };
     img.src = path;
 }
 
-function update() {
-    legend.update();
-    if (mode === "radar") {
-        tryLoadImage(currentRadarTime);
-    } else {
-        const d = new Date(datePicker.value);
-        tryLoadImage(d);
-    }
+function loadDaily(dateStr) {
+    const path = `png/GLD_RNN24H_${dateStr.replaceAll("-", "")}.png`;
+    updateOverlay(path, "✖ Sense dades diàries");
+}
+
+function loadWeekly(dateStr) {
+    const d = new Date(dateStr);
+    const day = d.getDay();
+    const diff = 7 - (day === 0 ? 7 : day); 
+    d.setDate(d.getDate() + diff);
+    const sunday = d.toISOString().slice(0,10);
+    weekPicker.value = sunday;
+    
+    const end = new Date(sunday);
+    const start = new Date(end); start.setDate(end.getDate() - 6);
+    weekLabel.textContent = `${start.toLocaleDateString('ca-ES', {day:'numeric', month:'short'})} - ${end.toLocaleDateString('ca-ES', {day:'numeric', month:'short'})}`;
+
+    const path = `png/GLD_RNN7D_${sunday.replaceAll("-", "")}.png`;
+    updateOverlay(path, "✖ Sense dades setmanals");
 }
 
 // =================================================
-// ESDEVENIMENTS
+// INTERACCIÓ
 // =================================================
-
-document.getElementById("tabRadar").onclick = () => {
-    mode = "radar";
-    document.getElementById("tabRadar").classList.add("active");
-    document.getElementById("tabDaily").classList.remove("active");
-    document.getElementById("radarControls").style.display = "block";
-    document.getElementById("dailyControls").style.display = "none";
-    update();
-};
-
-document.getElementById("tabDaily").onclick = () => {
-    mode = "daily";
-    document.getElementById("tabDaily").classList.add("active");
-    document.getElementById("tabRadar").classList.remove("active");
-    document.getElementById("dailyControls").style.display = "block";
-    document.getElementById("radarControls").style.display = "none";
-    update();
-};
-
-document.getElementById("prevRadar").onclick = () => {
-    currentRadarTime.setMinutes(currentRadarTime.getMinutes() - 12);
-    update();
-};
-document.getElementById("nextRadar").onclick = () => {
-    currentRadarTime.setMinutes(currentRadarTime.getMinutes() + 12);
-    update();
-};
-
 const datePicker = document.getElementById("datePicker");
-// Per defecte, l'acumulat d'ahir
-let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-datePicker.value = yesterday.toISOString().slice(0,10);
-datePicker.onchange = () => update();
+const weekPicker = document.getElementById("weekPicker");
+const statusMsg = document.getElementById("statusMsg");
+const opacitySlider = document.getElementById("opacitySlider");
+
+function setMode(newMode) {
+    mode = newMode;
+    document.getElementById("tabDaily").classList.toggle("active", mode === "daily");
+    document.getElementById("tabWeekly").classList.toggle("active", mode === "weekly");
+    document.getElementById("dailyControls").style.display = mode === "daily" ? "block" : "none";
+    document.getElementById("weeklyControls").style.display = mode === "weekly" ? "block" : "none";
+    legendControl.update();
+    mode === "daily" ? loadDaily(datePicker.value) : loadWeekly(weekPicker.value);
+}
+
+datePicker.onchange = (e) => loadDaily(e.target.value);
+weekPicker.onchange = (e) => loadWeekly(e.target.value);
+opacitySlider.oninput = (e) => { if (overlay) overlay.setOpacity(e.target.value); };
 
 document.getElementById("prevDay").onclick = () => {
     let d = new Date(datePicker.value); d.setDate(d.getDate() - 1);
-    datePicker.value = d.toISOString().slice(0,10);
-    update();
+    datePicker.value = d.toISOString().slice(0,10); loadDaily(datePicker.value);
 };
 document.getElementById("nextDay").onclick = () => {
     let d = new Date(datePicker.value); d.setDate(d.getDate() + 1);
-    datePicker.value = d.toISOString().slice(0,10);
-    update();
+    datePicker.value = d.toISOString().slice(0,10); loadDaily(datePicker.value);
+};
+document.getElementById("prevWeek").onclick = () => {
+    let d = new Date(weekPicker.value); d.setDate(d.getDate() - 7); loadWeekly(d.toISOString().slice(0,10));
+};
+document.getElementById("nextWeek").onclick = () => {
+    let d = new Date(weekPicker.value); d.setDate(d.getDate() + 7); loadWeekly(d.toISOString().slice(0,10));
 };
 
-const opacitySlider = document.getElementById("opacitySlider");
-opacitySlider.oninput = (e) => { if (overlay) overlay.setOpacity(e.target.value); };
+tabDaily.onclick = () => setMode("daily");
+tabWeekly.onclick = () => setMode("weekly");
 
-update();
+// Inicialització: Ahir per defecte
+let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+datePicker.value = yesterday.toISOString().slice(0,10);
+weekPicker.value = datePicker.value;
+setMode("daily");
 
 </script>
 </body>
