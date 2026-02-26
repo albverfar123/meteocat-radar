@@ -62,21 +62,24 @@
         
             /* La llegenda de colors */
             .legend-box {
-                position: fixed !important; /* Canviem a fixed per assegurar posició a pantalla */
-                width: 230px !important;    /* Una mica més petita com demanaves */
-                left: 50% !important;
-                transform: translateX(-50%) !important;
-                
-                /* POSICIÓ VERTICAL: 
-                   Pujant-lo des de baix (bottom). 
-                   Si el panell fa uns 140px, posem 150px perquè quedi just a sobre. */
-                bottom: 190px !important; 
-                top: auto !important; 
-                
-                padding: 6px 10px !important;
-                font-size: 10px !important;
-                z-index: 1600 !important; /* Per sobre de tot */
-            }
+                    position: fixed !important;
+                    width: 210px !important;    /* Una mica més estilitzada */
+                    left: 50% !important;
+                    transform: translateX(-50%) !important;
+                    
+                    /* Forcem la posició a la part inferior */
+                    top: auto !important;
+                    bottom: 20px !important; /* Base de la pantalla */
+                    
+                    /* Aquest margin és el que l'empeny per sobre dels controls (140px de control + espai) */
+                    margin-bottom: 165px !important; 
+                    
+                    padding: 6px 10px !important;
+                    font-size: 10px !important;
+                    z-index: 2500 !important; /* Valor molt alt per estar per sobre de tot */
+                    background: rgba(255, 255, 255, 0.9) !important;
+                    border: 1px solid #ccc !important;
+                }
         
             /* Reduïm la barra de colors interna */
             .colorbar-radar, .colorbar-daily {
