@@ -1,10 +1,6 @@
 name: Actualització Radar Meteocat
 
 on:
-  schedule:
-    # S'executa cada 12 minuts aproximadament
-    # Nota: GitHub Actions pot tardar uns minuts més segons la cua del servidor
-    - cron: '*/12 * * * *'
   workflow_dispatch: # Permet executar-lo manualment per provar
 
 jobs:
