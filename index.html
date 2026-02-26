@@ -88,14 +88,42 @@
 
 <script>
 // =================================================
-// CONFIGURACIÓ
+// CONFIGURACIÓ DINÀMICA
 // =================================================
 let mode = "radar";
 let currentRadarTime = new Date();
-// Ajustem l'hora inicial als 12 minuts passats
 currentRadarTime.setMinutes(Math.floor(currentRadarTime.getMinutes() / 12) * 12);
 
-const imageBounds = [[40.4, 0.0], [43.1, 3.5]];
+// Límits per defecte (mentre es carreguen els reals)
+let imageBounds = [[40.0, 0.0], [43.5, 3.8]]; 
+
+// FUNCIÓ PER LLEGIR ELS LÍMITS REALS
+async function fetchBounds() {
+    try {
+        const response = await fetch('bounds.json');
+        const data = await response.json();
+        imageBounds = [
+            [data.lat_min, data.lon_min], // Sud-Oest
+            [data.lat_max, data.lon_max]  // Nord-Est
+        ];
+        console.log("📍 Límits actualitzats des de JSON:", imageBounds);
+        update(); // Recarreguem la capa amb els límits bons
+    } catch (e) {
+        console.error("No s'ha pogut carregar bounds.json, usant defecte", e);
+    }
+}
+
+// Substitueix la funció tryLoadImage per utilitzar els nous imageBounds
+function tryLoadImage(date, suffixIndex = 0) {
+    // ... (la resta de la funció és igual, però ara usarà la variable imageBounds actualitzada)
+    // Assegura't que dins de img.onload fas servir la variable global imageBounds
+    if (overlay) map.removeLayer(overlay);
+    overlay = L.imageOverlay(path, imageBounds, { opacity: opacitySlider.value }).addTo(map);
+    // ...
+}
+
+// Al final del script, crida a la funció
+fetchBounds();
 
 // =================================================
 // MAPA I LLEGENDA
