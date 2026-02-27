@@ -17,45 +17,46 @@
             cursor: pointer; font-weight: bold; font-size: 12px; border-radius: 6px;
         }
         .header-tabs button.active { background: #007bff; color: white; }
-        
-        /* Estil per al botó de l'Aspecte */
         #btnAspect { border: 1px solid #444; margin-left: 10px; }
         #btnAspect.active { border-color: #ff00ac; color: #ff00ac; }
 
         #map { position: absolute; top: 60px; bottom: 0; width: 100%; background: #f0f0f0; }
+        
+        /* Panell Control */
         .control {
             position: absolute; background: white; z-index: 1500; padding: 15px;
             display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
         }
+        .control.collapsed { transform: translateX(120%); } /* S'amaga a la dreta */
         
-        /* Nou control per a l'Aspecte */
-        #aspectControl {
-            display: none; /* Amagat per defecte */
-            bottom: 20px; left: 20px; width: 200px; border-radius: 12px;
+        #toggleControl {
+            position: absolute; top: 10px; right: 10px; background: #eee; border: none;
+            border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold;
         }
 
-        .station-label {
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(0,0,0,0.2);
-            border-radius: 3px;
-            text-align: center;
-            font-size: 10px;
-            font-weight: bold;
-            color: #333;
-            pointer-events: none !important;
-        }
+        #aspectControl { display: none; bottom: 20px; left: 20px; width: 180px; border-radius: 12px; }
 
-        /* Estils Llegenda */
-        .legend {
-            padding: 8px; background: white; line-height: 14px; color: #333;
-            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-size: 10px;
+        /* Estils Llegenda Radar (Logarítmica) */
+        .radar-legend {
+            background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            width: 45px; height: 200px; position: relative; font-family: Arial, sans-serif;
         }
-        .legend i { width: 12px; height: 12px; float: left; margin-right: 5px; opacity: 0.9; border: 1px solid #ccc; }
+        .radar-bar {
+            width: 15px; height: 180px; border: 1px solid #999;
+            background: linear-gradient(to top, #ffffff, #98f5ff, #00ff00, #ffff00, #ff0000, #ff00ff, #000000);
+        }
+        .radar-tick { position: absolute; left: 25px; font-size: 9px; width: 30px; line-height: 0; color: #333; }
+        .radar-tick::before { content: ""; position: absolute; left: -10px; width: 8px; border-top: 1px solid #999; }
+
+        .legend { padding: 8px; background: white; line-height: 14px; font-size: 10px; border-radius: 8px; }
+        .legend i { width: 12px; height: 12px; float: left; margin-right: 5px; border: 1px solid #ccc; }
 
         @media (min-width: 601px) { .control:not(#aspectControl) { top: 80px; right: 20px; width: 260px; border-radius: 12px; } }
         @media (max-width: 600px) { 
-            .control:not(#aspectControl) { bottom: 0; width: 100%; border-radius: 20px 20px 0 0; box-sizing: border-box; } 
-            #aspectControl { bottom: 180px; left: 10px; width: 150px; }
+            .control:not(#aspectControl) { bottom: 0; width: 100%; border-radius: 20px 20px 0 0; }
+            .control.collapsed { transform: translateY(90%); } /* En mòbil s'amaga avall */
+            #aspectControl { bottom: 220px; left: 10px; }
         }
     </style>
 </head>
@@ -66,24 +67,26 @@
     <div class="header-tabs">
         <button id="modeDaily" class="active">DIARI</button>
         <button id="modeWeekly">SETMANAL</button>
-        <button id="btnAspect">ASPECTE</button> </div>
+        <button id="btnAspect" style="background: rgba(255,0,172,0.1)">ASPECTE</button>
+    </div>
 </div>
 
 <div id="map"></div>
 
 <div class="control" id="mainControl">
-    <div id="weekRangeDisplay" style="font-size:11px; color:#007bff; font-weight:bold; text-align:center; display:none; margin-bottom:5px;">--</div>
-    <input id="datePicker" type="date" style="width:100%; padding:8px; margin-bottom:5px;">
+    <button id="toggleControl" title="Minimitzar">×</button>
+    <div id="weekRangeDisplay" style="font-size:11px; color:#007bff; font-weight:bold; text-align:center; display:none;">--</div>
+    <input id="datePicker" type="date" style="width:100%; padding:8px;">
     
-    <div style="display:flex; gap:5px; margin-bottom:10px;">
+    <div style="display:flex; gap:5px;">
         <button id="prevBtn" style="flex:1">◀</button>
         <button id="nextBtn" style="flex:1">▶</button>
     </div>
 
-    <div id="statusMsg" style="font-size:12px; text-align:center; margin-bottom:5px;">Iniciant...</div>
+    <div id="statusMsg" style="font-size:12px; text-align:center;">Iniciant...</div>
 
     <label style="font-size:12px; display:flex; align-items:center; gap:5px;">
-        <input type="checkbox" id="checkStations" checked> Veure dades estacions (mm)
+        <input type="checkbox" id="checkStations" checked> Estacions (mm)
     </label>
     
     <div style="font-size: 10px; color: #666;">Opacitat Radar:</div>
@@ -92,119 +95,110 @@
 
 <div id="aspectControl" class="control">
     <div style="font-size: 11px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px;">Control Aspecte</div>
-    <div style="font-size: 10px; color: #666; margin-top: 5px;">Opacitat:</div>
     <input id="aspectOpacity" type="range" min="0" max="1" step="0.1" value="0.7" style="width:100%;">
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// Modifiquem el mapa per permetre més zoom (important per les tiles)
 var map = L.map('map', { zoomControl: false, maxZoom: 22 }).setView([41.7, 1.8], 7);
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 
 var overlayRadar = null;
-var aspectLayer = null; // Capa d'aspecte
-var legendControl = null; // Control de llegenda
+var aspectLayer = null;
+var aspectLegend = null;
+var radarLegend = null;
 var stationsLayer = L.layerGroup().addTo(map);
 var viewMode = 'daily';
 var radarBounds = null;
 
-// --- FUNCIONS ASPECTE ---
+// --- CONTROL DE MENÚ (MINIMITZAR) ---
+document.getElementById("toggleControl").onclick = function() {
+    const ctrl = document.getElementById("mainControl");
+    ctrl.classList.toggle("collapsed");
+    this.textContent = ctrl.classList.contains("collapsed") ? "+" : "×";
+};
+
+// --- LLEGENDA RADAR (LOGARÍTMICA) ---
+function updateRadarLegend() {
+    if (radarLegend) map.removeControl(radarLegend);
+    
+    radarLegend = L.control({position: 'bottomright'});
+    radarLegend.onAdd = function() {
+        var div = L.DomUtil.create('div', 'radar-legend');
+        div.innerHTML = '<div class="radar-bar"></div>';
+        
+        const maxVal = (viewMode === 'daily') ? 200 : 300;
+        const ticks = (viewMode === 'daily') ? [0.1, 1, 5, 10, 30, 70, 150, 200] : [0.1, 1, 10, 50, 100, 200, 300];
+        
+        ticks.forEach(val => {
+            // Càlcul logarítmic de la posició vertical (0 a 180px)
+            let pos = (Math.log10(val + 0.1) - Math.log10(0.2)) / (Math.log10(maxVal) - Math.log10(0.2)) * 180;
+            if (pos < 0) pos = 0;
+            if (pos > 180) pos = 180;
+            
+            let b = 180 - pos + 10; // 10px de marge superior
+            div.innerHTML += `<div class="radar-tick" style="bottom: ${b}px">${val}</div>`;
+        });
+        return div;
+    };
+    radarLegend.addTo(map);
+}
+
+// --- ASPECTE ---
 function toggleAspect() {
     const btn = document.getElementById("btnAspect");
     const control = document.getElementById("aspectControl");
-
     if (!aspectLayer) {
-        // ACTIVAR
         btn.classList.add("active");
         control.style.display = "flex";
-        
         aspectLayer = L.tileLayer('https://albverfar123.github.io/test_aspect/tiles_aspect/{z}/{x}/{y}.png', {
-            minZoom: 8,
-            maxNativeZoom: 12,
-            maxZoom: 22,
-            opacity: 0.7,
-            errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+            minZoom: 8, maxNativeZoom: 12, maxZoom: 22, opacity: 0.7
         }).addTo(map);
-        
-        // Portar radar al davant si existeix
         if(overlayRadar) overlayRadar.bringToFront();
-        
-        // Afegir llegenda
         addAspectLegend();
     } else {
-        // DESACTIVAR
         btn.classList.remove("active");
         control.style.display = "none";
         map.removeLayer(aspectLayer);
         aspectLayer = null;
-        if(legendControl) { map.removeControl(legendControl); legendControl = null; }
+        if(aspectLegend) { map.removeControl(aspectLegend); aspectLegend = null; }
     }
 }
 
 function addAspectLegend() {
-    legendControl = L.control({position: 'bottomright'});
-    legendControl.onAdd = function (map) {
+    aspectLegend = L.control({position: 'bottomleft'}); // Moguda a l'esquerra per no trepitjar la del radar
+    aspectLegend.onAdd = function () {
         var div = L.DomUtil.create('div', 'legend');
         var labels = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
         var colors = ['#ff00ac', '#ff97dd', '#5cc75a', '#9cc75a', '#c7c55a', '#c7a15a', '#c7735a', '#990067'];
-        div.innerHTML = '<strong>Orientació</strong><br>';
+        div.innerHTML = '<strong>Aspecte</strong><br>';
         for (var i = 0; i < labels.length; i++) {
             div.innerHTML += '<i style="background:' + colors[i] + '"></i> ' + labels[i] + '<br>';
         }
         return div;
     };
-    legendControl.addTo(map);
+    aspectLegend.addTo(map);
 }
 
-// Control slider opacitat aspecte
-document.getElementById("aspectOpacity").oninput = function() {
-    if (aspectLayer) aspectLayer.setOpacity(this.value);
-};
-
-document.getElementById("btnAspect").onclick = toggleAspect;
-
-// --- FINAL FUNCIONS ASPECTE ---
-
+// --- LÒGICA RADAR I DATES ---
 function getDates(dateIn) {
     let d = new Date(dateIn);
     const fmt = (date) => date.toISOString().slice(0,10).replace(/-/g, "");
     const fmtUI = (date) => `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
-    
     let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
     let monday = new Date(d.getTime()); monday.setDate(diff);
     let sunday = new Date(monday.getTime()); sunday.setDate(monday.getDate() + 6);
-
-    let endTrial = new Date(dateIn);
-    let startTrial = new Date(dateIn); startTrial.setDate(startTrial.getDate() - 6);
-
     return {
-        daily: fmt(new Date(dateIn)),
-        weeklyStart: fmt(monday),
-        weeklyEnd: fmt(sunday),
-        trialStart: fmt(startTrial),
-        trialEnd: fmt(endTrial),
-        uiStart: fmtUI(startTrial),
-        uiEnd: fmtUI(endTrial),
-        uiStartNat: fmtUI(monday),
-        uiEndNat: fmtUI(sunday)
+        daily: fmt(new Date(dateIn)), weeklyStart: fmt(monday), weeklyEnd: fmt(sunday),
+        trialStart: fmt(new Date(d.getTime() - 6*86400000)), trialEnd: fmt(new Date(dateIn)),
+        uiStart: fmtUI(new Date(d.getTime() - 6*86400000)), uiEnd: fmtUI(new Date(dateIn)),
+        uiStartNat: fmtUI(monday), uiEndNat: fmtUI(sunday)
     };
-}
-
-async function initMap() {
-    try {
-        const response = await fetch('bounds.json');
-        const b = await response.json();
-        radarBounds = [[b.lat_min, b.lon_min], [b.lat_max, b.lon_max]];
-    } catch (e) {
-        radarBounds = [[40.0, 0.0], [43.5, 3.8]]; 
-    }
-    updateView(); 
 }
 
 async function updateView() {
     if (!radarBounds) return;
-
+    updateRadarLegend(); // Actualitzem la llegenda segons el mode
     const dates = getDates(document.getElementById("datePicker").value);
     const status = document.getElementById("statusMsg");
     const weekDisplay = document.getElementById("weekRangeDisplay");
@@ -217,38 +211,15 @@ async function updateView() {
         loadRadar(`acumulats_diaris/acumulat_${dates.daily}.png`);
     } else {
         weekDisplay.style.display = "block";
-        
-        let pathNatural = `acumulats_setmanals/setmanal_${dates.weeklyStart}_${dates.weeklyEnd}.png`;
-        let pathTrial = `acumulats_setmanals/setmanal_${dates.trialStart}_${dates.trialEnd}.png`;
-        let resumPath = "";
-
-        loadRadar(pathNatural, async (success) => {
+        let pathNat = `acumulats_setmanals/setmanal_${dates.weeklyStart}_${dates.weeklyEnd}.png`;
+        loadRadar(pathNat, async (success) => {
             if (!success) {
-                weekDisplay.textContent = `Setmana del ${dates.uiStart} al ${dates.uiEnd}`;
-                resumPath = `acumulats_setmanals/resum_${dates.trialStart}_${dates.trialEnd}.txt`;
-                loadRadar(pathTrial);
+                weekDisplay.textContent = `Setmana: ${dates.uiStart} - ${dates.uiEnd}`;
+                loadRadar(`acumulats_setmanals/setmanal_${dates.trialStart}_${dates.trialEnd}.png`);
                 loadStations(dates.trialStart, dates.trialEnd);
             } else {
-                weekDisplay.textContent = `Setmana del ${dates.uiStartNat} al ${dates.uiEndNat}`;
-                resumPath = `acumulats_setmanals/resum_${dates.weeklyStart}_${dates.weeklyEnd}.txt`;
+                weekDisplay.textContent = `Setmana: ${dates.uiStartNat} - ${dates.uiEndNat}`;
                 loadStations(dates.weeklyStart, dates.weeklyEnd);
-            }
-
-            try {
-                const res = await fetch(resumPath);
-                if (!res.ok) throw new Error();
-                const text = await res.text();
-                let diesValids = [];
-                text.split('\n').forEach(line => {
-                    if (line.includes("PLUJA")) {
-                        let m = line.match(/^(\d{4})(\d{2})(\d{2}):/);
-                        if (m) diesValids.push(`${m[3]}/${m[2]}`);
-                    }
-                });
-                let msgDies = diesValids.length > 0 ? diesValids.join(", ") : "cap";
-                status.innerHTML = `✔ Carregat<br><span style="font-size:10px; color:#666">Dies pluja: ${msgDies}</span>`;
-            } catch (e) {
-                status.innerHTML = `✔ Carregat`;
             }
         });
     }
@@ -257,20 +228,12 @@ async function updateView() {
 async function loadRadar(path, callback) {
     const img = new Image();
     img.onload = () => {
-        overlayRadar = L.imageOverlay(path, radarBounds, { 
-            opacity: document.getElementById("opacitySlider").value 
-        }).addTo(map);
-        
-        // MANTENIR ORDRE: El radar sempre davant de l'aspecte
+        overlayRadar = L.imageOverlay(path, radarBounds, { opacity: document.getElementById("opacitySlider").value }).addTo(map);
         if(aspectLayer) overlayRadar.bringToFront();
-        
         document.getElementById("statusMsg").textContent = "✔ Carregat";
         if(callback) callback(true);
     };
-    img.onerror = () => {
-        document.getElementById("statusMsg").textContent = "✖ Arxiu no trobat";
-        if(callback) callback(false);
-    };
+    img.onerror = () => { if(callback) callback(false); };
     img.src = path;
 }
 
@@ -280,30 +243,32 @@ async function loadStations(start, end) {
         const res = await fetch(`acumulats_setmanals/estacions_${start}_${end}.json`);
         const data = await res.json();
         L.geoJSON(data, {
-            pointToLayer: (feature, latlng) => {
-                return L.marker(latlng, {
-                    icon: L.divIcon({
-                        className: 'station-label',
-                        html: feature.properties.pluja,
-                        iconSize: [25, 15]
-                    })
-                }).bindTooltip(`${feature.properties.nom}: ${feature.properties.pluja} mm`);
-            }
+            pointToLayer: (feature, latlng) => L.marker(latlng, {
+                icon: L.divIcon({ className: 'station-label', html: feature.properties.pluja, iconSize: [25, 15] })
+            }).bindTooltip(`${feature.properties.nom}: ${feature.properties.pluja} mm`)
         }).addTo(stationsLayer);
     } catch (e) {}
 }
 
+// --- EVENTS ---
 document.getElementById("modeDaily").onclick = function() { viewMode='daily'; this.classList.add('active'); document.getElementById("modeWeekly").classList.remove('active'); updateView(); };
 document.getElementById("modeWeekly").onclick = function() { viewMode='weekly'; this.classList.add('active'); document.getElementById("modeDaily").classList.remove('active'); updateView(); };
-
+document.getElementById("btnAspect").onclick = toggleAspect;
 document.getElementById("datePicker").onchange = updateView;
 document.getElementById("checkStations").onchange = updateView;
 document.getElementById("prevBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()-1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
 document.getElementById("nextBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()+1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
+document.getElementById("opacitySlider").oninput = function() { if (overlayRadar) overlayRadar.setOpacity(this.value); };
+document.getElementById("aspectOpacity").oninput = function() { if (aspectLayer) aspectLayer.setOpacity(this.value); };
 
-document.getElementById("opacitySlider").oninput = function() {
-    if (overlayRadar) overlayRadar.setOpacity(this.value);
-};
+async function initMap() {
+    try {
+        const res = await fetch('bounds.json');
+        const b = await res.json();
+        radarBounds = [[b.lat_min, b.lon_min], [b.lat_max, b.lon_max]];
+    } catch (e) { radarBounds = [[40.0, 0.0], [43.5, 3.8]]; }
+    updateView(); 
+}
 
 let dInit = new Date(); dInit.setDate(dInit.getDate()-1);
 document.getElementById("datePicker").value = dInit.toISOString().slice(0,10);
