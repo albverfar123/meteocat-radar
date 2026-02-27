@@ -27,25 +27,26 @@ def calculate_daily():
 
     # 3. Carregar i sumar les dades
     total_precip = None
-    used_files = [] # Llista per guardar els noms dels fitxers utilitzats
+    used_files = [] 
     
     for f in files:
+        file_path = os.path.join(OUTPUT_DIR, f)
         try:
-            ds = xr.open_dataset(os.path.join(OUTPUT_DIR, f))
-            data = ds['precipitacio'].fillna(0)
-            
-            if total_precip is None:
-                total_precip = data * 0.2
-                lon, lat = ds['lon'], ds['lat']
-            else:
-                total_precip += data * 0.2
-            
-            used_files.append(f) # Afegim el nom a la llista si s'ha obert correctament
-            ds.close()
+            # Utilitzem 'with' per assegurar que el fitxer s'allibera immediatament
+            with xr.open_dataset(file_path) as ds:
+                data = ds['precipitacio'].fillna(0)
+                
+                if total_precip is None:
+                    total_precip = data * 0.2
+                    lon, lat = ds['lon'].load(), ds['lat'].load() # Carreguem coordenades en memòria
+                else:
+                    total_precip += data * 0.2
+                
+                used_files.append(f)
         except Exception as e:
             print(f"⚠️ Error obrint {f}: {e}")
 
-    # 4. Crear el fitxer NetCDF
+    # 4. Crear el fitxer NetCDF Diari
     ds_daily = xr.Dataset(
         {"precipitacio_acumulada": (["lat", "lon"], total_precip.values)},
         coords={"lon": lon, "lat": lat},
@@ -63,24 +64,31 @@ def calculate_daily():
         f_txt.write("\n".join(used_files))
     print(f"📄 Llista de fonts guardada a: {txt_out_path}")
 
-    # 6. GENERACIÓ DEL PNG DE L'ACUMULAT
+    # 6. BORRAR ELS FITXERS .NC DE 12 MINUTS UTILITZATS
+    print(f"🗑️ Netejant fitxers temporals del dia {ieri}...")
+    for f in used_files:
+        file_to_delete = os.path.join(OUTPUT_DIR, f)
+        try:
+            os.remove(file_to_delete)
+        except Exception as e:
+            print(f"⚠️ No s'ha pogut esborrar {f}: {e}")
+    print(f"✨ Neteja completada.")
+
+    # 7. GENERACIÓ DEL PNG DE L'ACUMULAT
     generate_daily_png(total_precip, lon, lat, ieri)
 
 def generate_daily_png(data, lon, lat, date_str):
     fig = plt.figure(frameon=False)
-    # Calculem la mida per mantenir aspecte original (pels 40mb que comentaves)
     fig.set_size_inches(data.shape[1]/100, data.shape[0]/100)
     
     ax = plt.Axes(fig, [0., 0., 1., 1.])
     ax.set_axis_off()
     fig.add_axes(ax)
 
-    # Definim la norma logarítmica de 0.1 a 200 mm
     norm = colors.LogNorm(vmin=0.1, vmax=200)
     cmap = plt.get_cmap('turbo').copy()
-    cmap.set_under(alpha=0) # Transparent per sota de 0.1mm
+    cmap.set_under(alpha=0) 
 
-    # Dibuixem
     ax.pcolormesh(lon.values, lat.values, data.values, cmap=cmap, norm=norm, shading='auto')
 
     png_out_path = os.path.join(DAILY_DIR, f"acumulat_{date_str}.png")
@@ -88,7 +96,6 @@ def generate_daily_png(data, lon, lat, date_str):
     plt.close(fig)
     print(f"🎨 PNG logarítmic guardat: {png_out_path}")
     
-    # GUARDAR EL BOUNDS.JSON
     bounds_data = {
         "lat_min": float(lat.min()),
         "lat_max": float(lat.max()),
@@ -101,8 +108,5 @@ def generate_daily_png(data, lon, lat, date_str):
 
 if __name__ == "__main__":
     calculate_daily()
-
-
-
 
 
