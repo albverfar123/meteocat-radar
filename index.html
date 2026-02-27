@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Visor Radar Meteocat</title>
+    <title>Visor Acumulats Meteocat</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
@@ -16,13 +16,12 @@
             background: #1a1a1a; color: white; display: flex; align-items: center;
             padding: 0 16px; z-index: 2000; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
-        .tab { margin-right: 18px; cursor: pointer; opacity: 0.7; transition: 0.3s; font-size: 14px; white-space: nowrap; }
-        .tab.active { opacity: 1; font-weight: bold; border-bottom: 3px solid #007bff; }
+        .header-title { font-weight: bold; font-size: 16px; letter-spacing: 0.5px; }
 
         /* MAP */
         #map { position: absolute; top: 50px; bottom: 0; width: 100%; background: #f0f0f0; }
 
-        /* CONTROLS BASE */
+        /* CONTROLS */
         .control {
             position: absolute; background: white; z-index: 1500;
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
@@ -30,7 +29,6 @@
             box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
         }
 
-        /* BOTÓ AMAGAR/MOSTRAR */
         #toggleMenu {
             position: absolute; background: white; border: 1px solid #ccc;
             border-radius: 50%; width: 38px; height: 38px; cursor: pointer;
@@ -39,7 +37,6 @@
             transition: all 0.3s ease;
         }
 
-        /* GPS BUTTON */
         #btnLocate {
             width: 100%; padding: 8px; background: #007bff; color: white;
             border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
@@ -48,270 +45,69 @@
 
         .nav-arrows { display: flex; gap: 10px; width: 100%; justify-content: center; }
         .nav-arrows button { 
-            cursor: pointer; padding: 6px 12px; flex: none; min-width: 85px;
+            cursor: pointer; padding: 6px 12px; flex: 1;
             border: 1px solid #ccc; border-radius: 6px; background: #f8f9fa; 
             font-size: 12px; font-weight: bold;
         }
-        
-        .time-display { 
-            display: inline-block; font-family: monospace; background: #eee; 
-            padding: 4px 12px; border-radius: 6px; text-align: center;
-            font-weight: bold; color: #333; font-size: 12px; min-width: 120px;
-        }
 
-        .status { font-size: 11px; color: #444; font-weight: bold; }
+        .status { font-size: 11px; color: #444; font-weight: bold; margin-top: 2px; }
 
-        /* LLEGENDA BASE */
         .legend-box {
             background: rgba(255, 255, 255, 0.9); border: 1px solid #ccc;
             padding: 8px 12px; border-radius: 8px; z-index: 1400;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* CONFIGURACIÓ ESCRIPTORI */
+        /* ESCALA DE COLORS DIÀRIA */
+        .colorbar-daily { 
+            background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); 
+            height:15px; width:100%; border:1px solid #777; margin-top:5px; 
+        }
+
+        /* RESPONSIVE */
         @media (min-width: 601px) {
-            .control {
-                top: 70px; right: 20px; width: 260px; border-radius: 12px; padding: 15px;
-            }
+            .control { top: 70px; right: 20px; width: 260px; border-radius: 12px; padding: 15px; }
             .control.minimized { transform: translateX(350px); opacity: 0; }
             #toggleMenu { top: 60px; right: 20px; } 
             .legend-box { position: absolute; bottom: 30px; right: 20px; width: 280px; }
         }
 
-        /* CONFIGURACIÓ MÒBIL */
         @media (max-width: 600px) {
-            .control {
-                bottom: 0; left: 0; right: 0; width: 100%; 
-                border-radius: 20px 20px 0 0; padding: 15px 20px 25px 20px; box-sizing: border-box;
-            }
+            .control { bottom: 0; left: 0; right: 0; width: 100%; border-radius: 20px 20px 0 0; padding: 15px 20px 25px 20px; box-sizing: border-box; }
             .control.minimized { transform: translateY(100%); }
-            
             #toggleMenu { bottom: 15px; right: 15px; }
-            #toggleMenu.on-top { bottom: 200px; } 
-
-            .legend-box {
-                position: fixed !important; width: 260px !important; left: 50% !important;
-                transform: translateX(-50%) !important;
-                bottom: 0px !important;
-                margin-bottom: 165px; 
+            #toggleMenu.on-top { bottom: 210px; } 
+            .legend-box { 
+                position: fixed !important; width: 260px !important; left: 50% !important; 
+                transform: translateX(-50%) !important; bottom: 175px !important; 
                 font-size: 10px !important;
             }
-            .legend-box.lowered { margin-bottom: 25px !important; }
-            #map { bottom: 0; }
+            .legend-box.lowered { bottom: 25px !important; }
         }
-
-        /* Escales de color */
-        .colorbar-radar { background: linear-gradient(to right, #8000FF, #0000FF, #00FFFF, #00FF00, #FFFF00, #FF0000, #FF00FF); height:12px; width:100%; border:1px solid #999; margin-top:5px; }
-        .colorbar-daily { background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); height:15px; width:100%; border:1px solid #777; margin-top:5px; }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="tab active" id="tabRadar">Radar (12 min)</div>
-    <div class="tab" id="tabDaily">Acumulat Diari</div>
+    <div class="header-title">Acumulat Diari de Precipitació</div>
 </div>
 
 <div id="map"></div>
 
 <div class="control" id="mainControl">
-    <div id="radarControls" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-        <div class="nav-arrows">
-            <button id="prevRadar">◀ Ant.</button>
-            <button id="nextRadar">Seg. ▶</button>
-        </div>
-        <div class="time-display" id="radarTime">---</div>
-    </div>
-
-    <div id="dailyControls" style="display:none; width: 100%;">
+    <div id="dailyControls" style="width: 100%;">
         <input id="datePicker" type="date" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; margin-bottom: 8px; box-sizing: border-box;">
         <div class="nav-arrows">
-            <button id="prevDay">◀ Dia</button>
-            <button id="nextDay">Dia ▶</button>
+            <button id="prevDay">◀ Dia Anterior</button>
+            <button id="nextDay">Dia Següent ▶</button>
         </div>
     </div>
 
-    <div class="status" id="statusMsg">Carregant mapa...</div>
+    <div class="status" id="statusMsg">Carregant dades...</div>
 
     <div style="display:flex; align-items:center; gap:10px; width: 100%; margin-top: 5px;">
         <span style="font-size:11px">Opacitat:</span>
         <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.8" style="flex-grow:1;">
     </div>
-    <div style="width: 100%; border-top: 1px solid #eee; padding-top: 10px; margin-top: 5px;">
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; font-weight: bold;">
-            <input type="checkbox" id="checkCatalunya"> Capa Catalunya (PNG)
-        </label>
-        <div id="boxOpacitatCat" style="display:none; align-items:center; gap:10px; margin-top:5px;">
-            <span style="font-size:11px">Opacitat Capa:</span>
-            <input id="opacityCatalunya" type="range" min="0" max="1" step="0.05" value="0.7" style="flex-grow:1;">
-        </div>
-    </div>
-    <button id="btnLocate">📍 Ubicació GPS</button>
-</div>
-
-<button id="toggleMenu">✖</button>
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<script>
-let mode = "radar";
-let currentRadarTime = new Date();
-currentRadarTime.setMinutes(Math.floor(currentRadarTime.getMinutes() / 12) * 12);
-let imageBounds = [[40.0, 0.0], [43.5, 3.8]]; 
-var overlay = null;
-var userMarker = null;
-
-var map = L.map('map', { zoomControl: false }).setView([41.7, 1.8], 7);
-L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
-L.control.zoom({ position: 'topright' }).addTo(map);
-L.control.scale({ imperial: false, metric: true, position: 'topleft' }).addTo(map);
-
-// LLEGENDA AMB ELS VALORS ORIGINALS RECUPERATS
-var legend = L.control({ position: "bottomright" });
-legend.onAdd = function() {
-    this._div = L.DomUtil.create("div", "legend-box");
-    this.update();
-    return this._div;
-};
-<!DOCTYPE html>
-<html lang="ca">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Visor Radar Meteocat</title>
-
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
-    <style>
-        html, body { height: 100%; margin: 0; overflow: hidden; font-family: -apple-system, system-ui, sans-serif; }
-        
-        /* HEADER */
-        .header {
-            position: absolute; top: 0; left: 0; right: 0; height: 50px;
-            background: #1a1a1a; color: white; display: flex; align-items: center;
-            padding: 0 16px; z-index: 2000; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-        .tab { margin-right: 18px; cursor: pointer; opacity: 0.7; transition: 0.3s; font-size: 14px; white-space: nowrap; }
-        .tab.active { opacity: 1; font-weight: bold; border-bottom: 3px solid #007bff; }
-
-        /* MAP */
-        #map { position: absolute; top: 50px; bottom: 0; width: 100%; background: #f0f0f0; }
-
-        /* CONTROLS BASE */
-        .control {
-            position: absolute; background: white; z-index: 1500;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
-            display: flex; flex-direction: column; gap: 8px; align-items: center;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
-        }
-
-        /* BOTÓ AMAGAR/MOSTRAR */
-        #toggleMenu {
-            position: absolute; background: white; border: 1px solid #ccc;
-            border-radius: 50%; width: 38px; height: 38px; cursor: pointer;
-            z-index: 2100; display: flex; align-items: center; justify-content: center;
-            font-size: 18px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
-        }
-
-        /* GPS BUTTON */
-        #btnLocate {
-            width: 100%; padding: 8px; background: #007bff; color: white;
-            border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
-            font-size: 12px; margin-top: 10px;
-        }
-
-        .nav-arrows { display: flex; gap: 10px; width: 100%; justify-content: center; }
-        .nav-arrows button { 
-            cursor: pointer; padding: 6px 12px; flex: none; min-width: 85px;
-            border: 1px solid #ccc; border-radius: 6px; background: #f8f9fa; 
-            font-size: 12px; font-weight: bold;
-        }
-        
-        .time-display { 
-            display: inline-block; font-family: monospace; background: #eee; 
-            padding: 4px 12px; border-radius: 6px; text-align: center;
-            font-weight: bold; color: #333; font-size: 12px; min-width: 120px;
-        }
-
-        .status { font-size: 11px; color: #444; font-weight: bold; }
-
-        /* LLEGENDA BASE */
-        .legend-box {
-            background: rgba(255, 255, 255, 0.9); border: 1px solid #ccc;
-            padding: 8px 12px; border-radius: 8px; z-index: 1400;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* CONFIGURACIÓ ESCRIPTORI */
-        @media (min-width: 601px) {
-            .control {
-                top: 70px; right: 20px; width: 260px; border-radius: 12px; padding: 15px;
-            }
-            .control.minimized { transform: translateX(350px); opacity: 0; }
-            #toggleMenu { top: 60px; right: 20px; } 
-            .legend-box { position: absolute; bottom: 30px; right: 20px; width: 280px; }
-        }
-
-        /* CONFIGURACIÓ MÒBIL */
-        @media (max-width: 600px) {
-            .control {
-                bottom: 0; left: 0; right: 0; width: 100%; 
-                border-radius: 20px 20px 0 0; padding: 15px 20px 25px 20px; box-sizing: border-box;
-            }
-            .control.minimized { transform: translateY(100%); }
-            
-            #toggleMenu { bottom: 15px; right: 15px; }
-            #toggleMenu.on-top { bottom: 200px; } 
-
-            .legend-box {
-                position: fixed !important; width: 260px !important; left: 50% !important;
-                transform: translateX(-50%) !important;
-                bottom: 0px !important;
-                margin-bottom: 165px; 
-                font-size: 10px !important;
-            }
-            .legend-box.lowered { margin-bottom: 25px !important; }
-            #map { bottom: 0; }
-        }
-
-        /* Escales de color */
-        .colorbar-radar { background: linear-gradient(to right, #8000FF, #0000FF, #00FFFF, #00FF00, #FFFF00, #FF0000, #FF00FF); height:12px; width:100%; border:1px solid #999; margin-top:5px; }
-        .colorbar-daily { background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); height:15px; width:100%; border:1px solid #777; margin-top:5px; }
-    </style>
-</head>
-<body>
-
-<div class="header">
-    <div class="tab active" id="tabRadar">Radar (12 min)</div>
-    <div class="tab" id="tabDaily">Acumulat Diari</div>
-</div>
-
-<div id="map"></div>
-
-<div class="control" id="mainControl">
-    <div id="radarControls" style="width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px;">
-        <div class="nav-arrows">
-            <button id="prevRadar">◀ Ant.</button>
-            <button id="nextRadar">Seg. ▶</button>
-        </div>
-        <div class="time-display" id="radarTime">---</div>
-    </div>
-
-    <div id="dailyControls" style="display:none; width: 100%;">
-        <input id="datePicker" type="date" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; margin-bottom: 8px; box-sizing: border-box;">
-        <div class="nav-arrows">
-            <button id="prevDay">◀ Dia</button>
-            <button id="nextDay">Dia ▶</button>
-        </div>
-    </div>
-
-    <div class="status" id="statusMsg">Carregant mapa...</div>
-
-    <div style="display:flex; align-items:center; gap:10px; width: 100%; margin-top: 5px;">
-        <span style="font-size:11px">Opacitat Radar:</span>
-        <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.8" style="flex-grow:1;">
-    </div>
 
     <div style="width: 100%; border-top: 1px solid #eee; padding-top: 10px; margin-top: 5px;">
         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; font-weight: bold;">
@@ -323,7 +119,7 @@ legend.onAdd = function() {
         </div>
     </div>
 
-    <button id="btnLocate">📍 Ubicació GPS</button>
+    <button id="btnLocate">📍 La meva ubicació</button>
 </div>
 
 <button id="toggleMenu">✖</button>
@@ -331,71 +127,48 @@ legend.onAdd = function() {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-let mode = "radar";
-let currentRadarTime = new Date();
-currentRadarTime.setMinutes(Math.floor(currentRadarTime.getMinutes() / 12) * 12);
-let imageBounds = [[40.0, 0.0], [43.5, 3.8]]; 
-// COORDENADES CONVERTIDES DEL TEU TIFF:
+let imageBounds = [[40.0, 0.0], [43.5, 3.8]]; // Provisional fins llegir bounds.json
 const boundsCatalunya = [[40.4795, 0.1472], [43.0236, 3.4889]];
-
-var overlay = null;
-var userMarker = null;
-let overlayCatalunya = null;
 const pathCatalunya = 'mapa_aspect_mercator.png'; 
 
 var map = L.map('map', { zoomControl: false }).setView([41.7, 1.8], 7);
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 L.control.zoom({ position: 'topright' }).addTo(map);
-L.control.scale({ imperial: false, metric: true, position: 'topleft' }).addTo(map);
+
+var overlay = null;
+let overlayCatalunya = null;
+var userMarker = null;
 
 // LLEGENDA
 var legend = L.control({ position: "bottomright" });
 legend.onAdd = function() {
-    this._div = L.DomUtil.create("div", "legend-box");
-    this.update();
-    return this._div;
-};
-
-legend.update = function() {
-    if (mode === "radar") {
-        this._div.innerHTML = `<b>Intensitat (mm/h)</b><br>
-            <div class="colorbar-radar"></div>
-            <div style="display:flex; justify-content: space-between; width:100%; font-size:10px; margin-top:2px;">
-                <span>0.2</span><span>15</span><span>150+</span>
-            </div>`;
-    } else {
-        this._div.innerHTML = `
-            <div style="width: 100%;">
-                <b>Acumulat Diari (mm) <small>(log)</small></b><br>
-                <div class="colorbar-daily"></div>
-                <div style="position: relative; width: 100%; height: 6px;">
-                    <span style="position: absolute; left: 0%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 30.3%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 39.4%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 51.5%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 60.6%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 69.7%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 81.8%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 90.9%; border-left: 1px solid #444; height: 100%;"></span>
-                    <span style="position: absolute; left: 100%; border-left: 1px solid #444; height: 100%; margin-left:-1px;"></span>
-                </div>
-                <div style="position: relative; width: 100%; height: 15px; font-size: 10px; font-family: sans-serif; margin-top: 2px;">
-                    <span style="position: absolute; left: 0%; transform: translateX(-50%);">0.1</span>
-                    <span style="position: absolute; left: 30.3%; transform: translateX(-50%);">1</span>
-                    <span style="position: absolute; left: 39.4%; transform: translateX(-50%);">2</span>
-                    <span style="position: absolute; left: 51.5%; transform: translateX(-50%);">5</span>
-                    <span style="position: absolute; left: 60.6%; transform: translateX(-50%);">10</span>
-                    <span style="position: absolute; left: 69.7%; transform: translateX(-50%);">20</span>
-                    <span style="position: absolute; left: 81.8%; transform: translateX(-50%);">50</span>
-                    <span style="position: absolute; left: 90.9%; transform: translateX(-50%);">100</span>
-                    <span style="position: absolute; left: 100%; transform: translateX(-100%);">200</span>
-                </div>
-            </div>`;
-    }
+    let div = L.DomUtil.create("div", "legend-box");
+    div.innerHTML = `
+        <div style="width: 100%;">
+            <b>Acumulat Diari (mm) <small>(log)</small></b><br>
+            <div class="colorbar-daily"></div>
+            <div style="position: relative; width: 100%; height: 6px;">
+                <span style="position: absolute; left: 0%; border-left: 1px solid #444; height: 100%;"></span>
+                <span style="position: absolute; left: 30.3%; border-left: 1px solid #444; height: 100%;"></span>
+                <span style="position: absolute; left: 51.5%; border-left: 1px solid #444; height: 100%;"></span>
+                <span style="position: absolute; left: 69.7%; border-left: 1px solid #444; height: 100%;"></span>
+                <span style="position: absolute; left: 90.9%; border-left: 1px solid #444; height: 100%;"></span>
+                <span style="position: absolute; left: 100%; border-left: 1px solid #444; height: 100%; margin-left:-1px;"></span>
+            </div>
+            <div style="position: relative; width: 100%; height: 15px; font-size: 10px; font-family: sans-serif; margin-top: 2px;">
+                <span style="position: absolute; left: 0%; transform: translateX(-50%);">0.1</span>
+                <span style="position: absolute; left: 30.3%; transform: translateX(-50%);">1</span>
+                <span style="position: absolute; left: 51.5%; transform: translateX(-50%);">5</span>
+                <span style="position: absolute; left: 69.7%; transform: translateX(-50%);">20</span>
+                <span style="position: absolute; left: 90.9%; transform: translateX(-50%);">100</span>
+                <span style="position: absolute; left: 100%; transform: translateX(-100%);">200</span>
+            </div>
+        </div>`;
+    return div;
 };
 legend.addTo(map);
 
-// AMAGAR / MOSTRAR MENÚ
+// MENU TOGGLE
 const mainControl = document.getElementById("mainControl");
 const toggleBtn = document.getElementById("toggleMenu");
 const legendBox = document.querySelector(".legend-box");
@@ -409,7 +182,7 @@ toggleBtn.onclick = () => {
     }
 };
 
-// LOGICA CAPA CATALUNYA
+// CAPA CATALUNYA
 const checkCat = document.getElementById("checkCatalunya");
 const sliderCat = document.getElementById("opacityCatalunya");
 const boxOpacitatCat = document.getElementById("boxOpacitatCat");
@@ -417,91 +190,78 @@ const boxOpacitatCat = document.getElementById("boxOpacitatCat");
 checkCat.onchange = function() {
     if (this.checked) {
         overlayCatalunya = L.imageOverlay(pathCatalunya, boundsCatalunya, { 
-            opacity: sliderCat.value,
-            zIndex: 400 // Capa inferior
+            opacity: sliderCat.value, zIndex: 400 
         }).addTo(map);
         boxOpacitatCat.style.display = "flex";
     } else {
-        if (overlayCatalunya) {
-            map.removeLayer(overlayCatalunya);
-            overlayCatalunya = null;
-        }
+        if (overlayCatalunya) { map.removeLayer(overlayCatalunya); overlayCatalunya = null; }
         boxOpacitatCat.style.display = "none";
     }
 };
-
-sliderCat.oninput = function(e) {
-    if (overlayCatalunya) overlayCatalunya.setOpacity(e.target.value);
-};
+sliderCat.oninput = (e) => { if (overlayCatalunya) overlayCatalunya.setOpacity(e.target.value); };
 
 // GPS
 document.getElementById("btnLocate").onclick = () => map.locate({setView: true, maxZoom: 10});
 map.on('locationfound', (e) => {
     if (userMarker) map.removeLayer(userMarker);
     userMarker = L.circleMarker(e.latlng, { radius: 8, color: 'white', fillColor: '#007bff', fillOpacity: 1, weight: 2 }).addTo(map);
-    userMarker.bindPopup("Ets aquí").openPopup();
 });
 
-// CÀRREGA IMATGES RADAR
-async function fetchBounds() {
+// CARREGAR IMATGE ACUMULAT
+async function fetchBoundsAndLoad() {
     try {
         const response = await fetch('bounds.json');
         const data = await response.json();
         imageBounds = [[data.lat_min, data.lon_min], [data.lat_max, data.lon_max]];
-        update(); 
-    } catch (e) { update(); }
+    } catch (e) { console.log("No s'ha pogut llegir bounds.json, usant default"); }
+    loadDailyImage();
 }
 
-function tryLoadImage(date, suffixIndex = 0) {
-    const suffixes = ["07", "00"];
-    const Y = date.getUTCFullYear(), M = String(date.getUTCMonth() + 1).padStart(2, '0'), D = String(date.getUTCDate()).padStart(2, '0');
-    const h = String(date.getUTCHours()).padStart(2, '0'), m = String(date.getUTCMinutes()).padStart(2, '0');
-    let path = (mode === "radar") ? `imatges_radar/radar_${Y}${M}${D}_${h}${m}${suffixes[suffixIndex]}.png` : `acumulats_diaris/acumulat_${Y}${M}${D}.png`;
+function loadDailyImage() {
+    const dateVal = document.getElementById("datePicker").value.replace(/-/g, "");
+    const path = `acumulats_diaris/acumulat_${dateVal}.png`;
     const statusMsg = document.getElementById("statusMsg");
-    statusMsg.textContent = "Cercant...";
+    
+    statusMsg.textContent = "Buscant...";
+    statusMsg.style.color = "#444";
+
     const img = new Image();
     img.onload = () => {
         if (overlay) map.removeLayer(overlay);
         overlay = L.imageOverlay(path, imageBounds, { 
-            opacity: document.getElementById("opacitySlider").value,
-            zIndex: 500 // Capa superior (Radar)
+            opacity: document.getElementById("opacitySlider").value, zIndex: 500 
         }).addTo(map);
-        statusMsg.style.color = "green"; statusMsg.textContent = "✔ Actualitzat";
-        if(mode === "radar") document.getElementById("radarTime").textContent = `${h}:${m} UTC`;
+        statusMsg.style.color = "green";
+        statusMsg.textContent = "✔ Acumulat carregat";
     };
     img.onerror = () => {
-        if (mode === "radar" && suffixIndex === 0) tryLoadImage(date, 1);
-        else { statusMsg.style.color = "red"; statusMsg.textContent = "✖ Sense dades"; if (overlay) map.removeLayer(overlay); overlay = null; }
+        statusMsg.style.color = "red";
+        statusMsg.textContent = "✖ Sense dades per aquest dia";
+        if (overlay) map.removeLayer(overlay);
+        overlay = null;
     };
     img.src = path;
 }
 
-function update() { legend.update(); tryLoadImage(mode === "radar" ? currentRadarTime : new Date(document.getElementById("datePicker").value)); }
-
-// TABS
-document.getElementById("tabRadar").onclick = () => { mode = "radar"; toggleTabs("tabRadar", "tabDaily", "radarControls", "dailyControls"); };
-document.getElementById("tabDaily").onclick = () => { mode = "daily"; toggleTabs("tabDaily", "tabRadar", "dailyControls", "radarControls"); };
-
-function toggleTabs(activeId, inactiveId, showCtrl, hideCtrl) {
-    document.getElementById(activeId).classList.add("active"); document.getElementById(inactiveId).classList.remove("active");
-    document.getElementById(showCtrl).style.display = "block"; document.getElementById(hideCtrl).style.display = "none";
-    update();
-}
-
-document.getElementById("prevRadar").onclick = () => { currentRadarTime.setMinutes(currentRadarTime.getMinutes() - 12); update(); };
-document.getElementById("nextRadar").onclick = () => { currentRadarTime.setMinutes(currentRadarTime.getMinutes() + 12); update(); };
-
+// CONTROL DE DATES
 const datePicker = document.getElementById("datePicker");
 let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
 datePicker.value = yesterday.toISOString().slice(0,10);
-datePicker.onchange = update;
+datePicker.onchange = loadDailyImage;
 
-document.getElementById("prevDay").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()-1); datePicker.value=d.toISOString().slice(0,10); update(); };
-document.getElementById("nextDay").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()+1); datePicker.value=d.toISOString().slice(0,10); update(); };
+document.getElementById("prevDay").onclick = () => { 
+    let d = new Date(datePicker.value); d.setDate(d.getDate()-1); 
+    datePicker.value=d.toISOString().slice(0,10); loadDailyImage(); 
+};
+document.getElementById("nextDay").onclick = () => { 
+    let d = new Date(datePicker.value); d.setDate(d.getDate()+1); 
+    datePicker.value=d.toISOString().slice(0,10); loadDailyImage(); 
+};
 
 document.getElementById("opacitySlider").oninput = (e) => { if (overlay) overlay.setOpacity(e.target.value); };
 
-fetchBounds();
+// Inici
+fetchBoundsAndLoad();
 </script>
 </body>
 </html>
