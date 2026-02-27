@@ -1,6 +1,0 @@
-Resum de l'acumulat del dia 20260227:
-Total fitxers processats: 2
-Resolució temporal: 6 minuts (factor 0.1)
-----------------------------------------
-radar_20260227_210607.nc
-radar_20260227_211207.nc
