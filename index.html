@@ -134,20 +134,33 @@ async function updateView() {
     }
 }
 
-function loadRadar(path, callback) {
-    const img = new Image();
-    img.onload = () => {
-        overlayRadar = L.imageOverlay(path, [[40.0, 0.0], [43.5, 3.8]], { 
-            opacity: document.getElementById("opacitySlider").value 
-        }).addTo(map);
-        document.getElementById("statusMsg").textContent = "✔ Carregat";
-        if(callback) callback(true);
-    };
-    img.onerror = () => {
-        document.getElementById("statusMsg").textContent = "✖ Arxiu no trobat";
+async function loadRadar(path, callback) {
+    // El fitxer de bounds es diu igual que el PNG però amb l'extensió canviada
+    const boundsPath = path.replace('.png', '.json_bounds');
+    
+    try {
+        const res = await fetch(boundsPath);
+        const b = await res.json();
+        const realBounds = [[b.lat_min, b.lon_min], [b.lat_max, b.lon_max]];
+
+        const img = new Image();
+        img.onload = () => {
+            overlayRadar = L.imageOverlay(path, realBounds, { 
+                opacity: document.getElementById("opacitySlider").value 
+            }).addTo(map);
+            document.getElementById("statusMsg").textContent = "✔ Carregat";
+            if(callback) callback(true);
+        };
+        img.onerror = () => {
+            document.getElementById("statusMsg").textContent = "✖ Arxiu no trobat";
+            if(callback) callback(false);
+        };
+        img.src = path;
+
+    } catch (e) {
+        document.getElementById("statusMsg").textContent = "✖ Error coordenades";
         if(callback) callback(false);
-    };
-    img.src = path;
+    }
 }
 
 async function loadStations(start, end) {
