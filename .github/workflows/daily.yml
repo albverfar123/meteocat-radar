@@ -30,8 +30,9 @@ jobs:
       - name: Download temporary radars
         uses: actions/download-artifact@v4
         with:
-          name: radars-temporals
+          pattern: radar-* # Agafa tots els "paquets" fets durant el dia
           path: dades_radar/
+          merge-multiple: true    # AJUNTA'LS TOTS AQUÍ
         continue-on-error: true # Per si un dia no s'ha descarregat cap radar
 
       # 2. EXECUTAR L'ACUMULAT I LA NETEJA
