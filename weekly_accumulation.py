@@ -167,9 +167,22 @@ def save_outputs(start_date, end_date, resum, csv_data, stats_estacions, data_ar
     with open(os.path.join(WEEKLY_DIR, f"estacions_{week_str}.json"), 'w', encoding='utf-8') as f:
         json.dump(geojson, f, ensure_ascii=False)
 
-    # 4. PNG Setmanal
+    # 4. PNG Setmanal i Fitxer de Límits (Bounds)
     if data_array is not None:
         png_path = os.path.join(WEEKLY_DIR, f"setmanal_{week_str}.png")
+        bounds_path = os.path.join(WEEKLY_DIR, f"setmanal_{week_str}.json_bounds") # Fitxer auxiliar
+
+        # Guardem els límits reals extrets de les dades .nc
+        bounds = {
+            "lat_min": float(lat.values.min()),
+            "lat_max": float(lat.values.max()),
+            "lon_min": float(lon.values.min()),
+            "lon_max": float(lon.values.max())
+        }
+        with open(bounds_path, 'w') as f:
+            json.dump(bounds, f)
+
+        # Generar el PNG (important bbox_inches='tight' i pad_inches=0)
         fig = plt.figure(frameon=False)
         fig.set_size_inches(data_array.shape[1]/100, data_array.shape[0]/100)
         ax = plt.Axes(fig, [0., 0., 1., 1.])
@@ -182,7 +195,7 @@ def save_outputs(start_date, end_date, resum, csv_data, stats_estacions, data_ar
             cmap.set_under(alpha=0)
             ax.pcolormesh(lon.values, lat.values, data_array.values, cmap=cmap, norm=norm, shading='auto')
         
-        fig.savefig(png_path, transparent=True, dpi=100)
+        fig.savefig(png_path, transparent=True, dpi=100, bbox_inches='tight', pad_inches=0)
         plt.close(fig)
 
 if __name__ == "__main__":
