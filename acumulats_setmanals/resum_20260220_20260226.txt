@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-02-20 a 2026-02-26
+--------------------------------------------------
+20260220: ERROR      -> Fitxer NC no trobat
+20260221: ANTICICLÓ  -> Màxim: Cassà de la Selva (0.1 mm) [AVÍS: Fitxer NC no trobat]
+20260222: ANTICICLÓ  -> Màxim: Oliola (0.2 mm) [AVÍS: Fitxer NC no trobat]
+20260223: ANTICICLÓ  -> Màxim: Cervera (0.1 mm) [AVÍS: Fitxer NC no trobat]
+20260224: ANTICICLÓ  -> Màxim: Illa de Buda (0.3 mm) [AVÍS: Fitxer NC no trobat]
+20260225: ANTICICLÓ  -> Màxim: el Vendrell (0.2 mm)
+20260226: ANTICICLÓ  -> Màxim: Mas de Barberans (0.4 mm)
