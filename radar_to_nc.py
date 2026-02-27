@@ -4,6 +4,7 @@ import os
 import numpy as np
 import xarray as xr
 import rasterio
+import json
 from datetime import datetime, timedelta
 from io import BytesIO
 from PIL import Image
@@ -12,7 +13,6 @@ from rasterio.transform import from_bounds
 # --- CONFIGURACIÓ ---
 ZOOM = 7
 OUTPUT_DIR = "dades_radar"
-PNG_DIR = "imatges_radar"  # Carpeta nova per als PNGs
 
 TILES = [(64, 80), (65, 80), (64, 79), (65, 79)]
 
@@ -58,18 +58,23 @@ def find_latest_available_timestamp():
     return None
 
 def process():
-    # Crear carpetes si no existeixen
-    for d in [OUTPUT_DIR, PNG_DIR]:
-        if not os.path.exists(d): os.makedirs(d)
+    # Crear carpeta de sortida si no existeix
+    if not os.path.exists(OUTPUT_DIR): 
+        os.makedirs(OUTPUT_DIR)
 
     target_ts = find_latest_available_timestamp()
-    if not target_ts: return
+    if not target_ts: 
+        print("❌ No s'ha trobat cap timestamp disponible.")
+        return
 
     tiles_data = {}
     for x, y in TILES:
         r = requests.get(build_url(target_ts, x, y), timeout=10)
         if r.status_code == 200:
             tiles_data[(x, y)] = np.array(Image.open(BytesIO(r.content)).convert("RGB"))
+        else:
+            print(f"⚠️ Error descarregant tile {x},{y}")
+            return
 
     # Muntar el mosaic
     top = np.hstack([tiles_data[(64, 80)], tiles_data[(65, 80)]])
@@ -78,7 +83,7 @@ def process():
 
     height, width, _ = mosaic.shape
     
-    # --- GENERACIÓ DEL NETCDF ---
+    # --- GENERACIÓ DE LES DADES DE PRECIPITACIÓ ---
     precip_data = np.full((height, width), np.nan, dtype=np.float32)
     r_chan, g_chan, b_chan = mosaic[:,:,0], mosaic[:,:,1], mosaic[:,:,2]
 
@@ -86,6 +91,7 @@ def process():
         mask = (r_chan == color[0]) & (g_chan == color[1]) & (b_chan == color[2])
         precip_data[mask] = value
 
+    # Càlcul de coordenades
     bounds_list = [tile_bounds_tms(x, y, ZOOM) for x, y in TILES]
     transform = from_bounds(min(b[0] for b in bounds_list), min(b[1] for b in bounds_list), 
                             max(b[2] for b in bounds_list), max(b[3] for b in bounds_list), width, height)
@@ -93,6 +99,7 @@ def process():
     lons, _ = rasterio.transform.xy(transform, [0] * width, np.arange(width))
     _, lats = rasterio.transform.xy(transform, np.arange(height), [0] * height)
 
+    # --- GENERACIÓ DEL NETCDF ---
     ds = xr.Dataset(
         {"precipitacio": (["lat", "lon"], precip_data)},
         coords={
@@ -104,25 +111,9 @@ def process():
     
     nc_filename = f"radar_{target_ts:%Y%m%d_%H%M%S}.nc"
     ds.to_netcdf(os.path.join(OUTPUT_DIR, nc_filename))
-    print(f"Creat NC: {nc_filename}")
+    print(f"✅ Creat NC: {nc_filename}")
 
-    # --- GENERACIÓ DEL PNG TRANSPARENT ---
-    # Creem una màscara d'alfa: 0 on és negre [0,0,0], 255 on hi ha color
-    alpha = np.where(np.all(mosaic == [0, 0, 0], axis=-1), 0, 255).astype(np.uint8)
-    
-    # Ajuntem RGB amb l'Alpha
-    rgba_mosaic = np.dstack((mosaic, alpha))
-    
-    img_png = Image.fromarray(rgba_mosaic, 'RGBA')
-    png_filename = f"radar_{target_ts:%Y%m%d_%H%M%S}.png"
-    img_png.save(os.path.join(PNG_DIR, png_filename))
-    print(f"Creat PNG: {png_filename}")
-
-    import json
-
-    # ... (dins de la funció process, després de crear el PNG)
-    
-    # Extraiem els límits exactes de les coordenades que hem calculat
+    # --- ACTUALITZACIÓ DE BOUNDS.JSON ---
     lat_min, lat_max = float(ds.lat.min()), float(ds.lat.max())
     lon_min, lon_max = float(ds.lon.min()), float(ds.lon.max())
     
@@ -136,8 +127,9 @@ def process():
     with open("bounds.json", "w") as f:
         json.dump(bounds_data, f)
 
-    print(f"📍 Coordenades guardades: {bounds_data}")
+    print(f"📍 Coordenades actualitzades: {bounds_data}")
 
 if __name__ == "__main__":
     process()
+
 
