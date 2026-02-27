@@ -10,123 +10,125 @@
     <style>
         html, body { height: 100%; margin: 0; overflow: hidden; font-family: -apple-system, system-ui, sans-serif; }
         
+        /* HEADER AMB SELECTOR */
         .header {
-            position: absolute; top: 0; left: 0; right: 0; height: 50px;
+            position: absolute; top: 0; left: 0; right: 0; height: 60px;
             background: #1a1a1a; color: white; display: flex; align-items: center;
-            padding: 0 16px; z-index: 2000; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            justify-content: space-between; padding: 0 16px; z-index: 2000; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
-        .header-title { font-weight: bold; font-size: 16px; letter-spacing: 0.5px; }
+        .header-title { font-weight: bold; font-size: 15px; letter-spacing: 0.5px; }
 
-        #map { position: absolute; top: 50px; bottom: 0; width: 100%; background: #f0f0f0; }
+        .header-tabs { display: flex; background: #333; border-radius: 8px; padding: 3px; gap: 2px; }
+        .header-tabs button {
+            background: transparent; border: none; color: #aaa; padding: 6px 12px;
+            cursor: pointer; font-weight: bold; font-size: 12px; border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .header-tabs button.active { background: #007bff; color: white; }
 
-        /* CONTROLS */
+        #map { position: absolute; top: 60px; bottom: 0; width: 100%; background: #f0f0f0; }
+
+        /* CONTROLS LATERALS */
         .control {
             position: absolute; background: white; z-index: 1500;
             transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
-            display: flex; flex-direction: column; gap: 8px; align-items: center;
+            display: flex; flex-direction: column; gap: 10px; align-items: center;
             box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
         }
 
-        /* MODES TABS */
-        .mode-selector { display: flex; width: 100%; gap: 5px; margin-bottom: 5px; }
-        .mode-selector button { 
-            flex: 1; padding: 8px; border: 1px solid #ccc; background: #eee; 
-            cursor: pointer; font-weight: bold; border-radius: 6px; font-size: 12px;
-        }
-        .mode-selector button.active { background: #007bff; color: white; border-color: #0056b3; }
-
         #toggleMenu {
             position: absolute; background: white; border: 1px solid #ccc;
-            border-radius: 50%; width: 38px; height: 38px; cursor: pointer;
+            border-radius: 50%; width: 42px; height: 42px; cursor: pointer;
             z-index: 2100; display: flex; align-items: center; justify-content: center;
-            font-size: 18px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
+            font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
 
         #btnLocate {
-            width: 100%; padding: 8px; background: #28a745; color: white;
-            border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
-            font-size: 12px; margin-top: 5px;
+            width: 100%; padding: 10px; background: #28a745; color: white;
+            border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
+            font-size: 12px;
         }
 
-        .nav-arrows { display: flex; gap: 10px; width: 100%; justify-content: center; }
+        .nav-arrows { display: flex; gap: 8px; width: 100%; }
         .nav-arrows button { 
-            cursor: pointer; padding: 6px 12px; flex: 1;
-            border: 1px solid #ccc; border-radius: 6px; background: #f8f9fa; 
-            font-size: 12px; font-weight: bold;
+            cursor: pointer; padding: 8px; flex: 1; border: 1px solid #ddd; 
+            border-radius: 8px; background: #f8f9fa; font-size: 12px; font-weight: bold;
         }
 
-        .status { font-size: 11px; color: #444; font-weight: bold; margin-top: 2px; text-align: center; }
-        .week-info { font-size: 11px; color: #007bff; font-weight: bold; margin-bottom: 5px; display: none; }
+        .status { font-size: 12px; color: #444; font-weight: bold; text-align: center; }
+        .week-info { font-size: 11px; color: #007bff; font-weight: bold; margin-bottom: 4px; display: none; text-align: center;}
 
+        /* LLEGENDA I COLORBAR */
         .legend-box {
-            background: rgba(255, 255, 255, 0.9); border: 1px solid #ccc;
-            padding: 8px 12px; border-radius: 8px; z-index: 1400;
+            background: rgba(255, 255, 255, 0.95); border: 1px solid #bbb;
+            padding: 10px 15px; border-radius: 10px; z-index: 1400; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-
         .colorbar { 
             background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); 
-            height:15px; width:100%; border:1px solid #777; margin-top:5px; 
+            height:16px; width:100%; border:1px solid #666; margin-top:5px; border-radius: 2px;
         }
+        .tick-container { position: relative; width: 100%; height: 18px; font-size: 10px; font-family: sans-serif; margin-top: 4px; }
+        .tick-container span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+        .tick-mark-container { position: relative; width: 100%; height: 5px; }
+        .tick-mark-container span { position: absolute; border-left: 1px solid #333; height: 5px; }
 
         @media (min-width: 601px) {
-            .control { top: 70px; right: 20px; width: 280px; border-radius: 12px; padding: 15px; }
+            .control { top: 80px; right: 20px; width: 260px; border-radius: 12px; padding: 18px; }
             .control.minimized { transform: translateX(350px); opacity: 0; }
-            #toggleMenu { top: 60px; right: 20px; } 
+            #toggleMenu { top: 75px; right: 20px; } 
             .legend-box { position: absolute; bottom: 30px; right: 20px; width: 280px; }
         }
 
         @media (max-width: 600px) {
-            .control { bottom: 0; left: 0; right: 0; width: 100%; border-radius: 20px 20px 0 0; padding: 15px 20px 25px 20px; box-sizing: border-box; }
+            .header-title { font-size: 13px; max-width: 40%; }
+            .control { bottom: 0; left: 0; right: 0; width: 100%; border-radius: 20px 20px 0 0; padding: 15px 20px 30px 20px; box-sizing: border-box; }
             .control.minimized { transform: translateY(100%); }
-            #toggleMenu { bottom: 15px; right: 15px; }
-            #toggleMenu.on-top { bottom: 250px; } 
+            #toggleMenu { bottom: 20px; right: 20px; }
+            #toggleMenu.on-top { bottom: 260px; } 
             .legend-box { 
-                position: fixed !important; width: 260px !important; left: 50% !important; 
-                transform: translateX(-50%) !important; bottom: 215px !important; 
-                font-size: 10px !important;
+                position: fixed !important; width: 250px !important; left: 50% !important; 
+                transform: translateX(-50%) !important; bottom: 220px !important; 
             }
-            .legend-box.lowered { bottom: 25px !important; }
+            .legend-box.lowered { bottom: 30px !important; }
         }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="header-title" id="titleHeader">Acumulat Diari de Precipitació</div>
+    <div class="header-title" id="titleHeader">Radar Meteocat</div>
+    <div class="header-tabs">
+        <button id="modeDaily" class="active">DIARI</button>
+        <button id="modeWeekly">SETMANAL</button>
+    </div>
 </div>
 
 <div id="map"></div>
 
 <div class="control" id="mainControl">
-    <div class="mode-selector">
-        <button id="modeDaily" class="active">DIARI</button>
-        <button id="modeWeekly">SETMANAL</button>
-    </div>
-
     <div id="dateSelector" style="width: 100%;">
-        <div id="weekRangeDisplay" class="week-info">Setmana: -- al --</div>
-        <input id="datePicker" type="date" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; margin-bottom: 8px; box-sizing: border-box;">
+        <div id="weekRangeDisplay" class="week-info">--</div>
+        <input id="datePicker" type="date" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; margin-bottom: 10px; box-sizing: border-box; font-family: inherit;">
         <div class="nav-arrows">
             <button id="prevBtn">◀ Anterior</button>
             <button id="nextBtn">Següent ▶</button>
         </div>
     </div>
 
-    <div class="status" id="statusMsg">Carregant dades...</div>
+    <div class="status" id="statusMsg">Carregant...</div>
 
-    <div style="display:flex; align-items:center; gap:10px; width: 100%; margin-top: 5px;">
-        <span style="font-size:11px">Opacitat:</span>
-        <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.8" style="flex-grow:1;">
-    </div>
-
-    <div style="width: 100%; border-top: 1px solid #eee; padding-top: 10px; margin-top: 5px;">
+    <div style="width: 100%; border-top: 1px solid #eee; padding-top: 5px;">
+        <div style="display:flex; align-items:center; gap:10px; width: 100%; margin: 8px 0;">
+            <span style="font-size:11px; font-weight: bold;">Opacitat:</span>
+            <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.8" style="flex-grow:1; cursor: pointer;">
+        </div>
         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; font-weight: bold;">
-            <input type="checkbox" id="checkCatalunya"> Mapa Catalunya (Rius/Comarques)
+            <input type="checkbox" id="checkCatalunya"> Mapa Catalunya (PNG)
         </label>
     </div>
 
-    <button id="btnLocate">📍 Ubicació Actual</button>
+    <button id="btnLocate">📍 La meva ubicació</button>
 </div>
 
 <button id="toggleMenu">✖</button>
@@ -145,32 +147,53 @@ L.control.zoom({ position: 'topright' }).addTo(map);
 var overlay = null;
 let overlayCatalunya = null;
 var userMarker = null;
-let viewMode = 'daily'; // 'daily' o 'weekly'
+let viewMode = 'daily'; 
 
-// --- LLEGENDA DINÀMICA ---
+// --- LLEGENDA DINÀMICA AMB TICKS CALCULATS ---
 var legend = L.control({ position: "bottomright" });
 legend.onAdd = function() {
     this._div = L.DomUtil.create("div", "legend-box");
     this.update();
     return this._div;
 };
+
 legend.update = function() {
     let title = viewMode === 'daily' ? "Acumulat Diari (mm)" : "Acumulat Setmanal (mm)";
-    let vMax = viewMode === 'daily' ? "200" : "300";
-    let ticks = viewMode === 'daily' 
-        ? `<span style="left:0%">0.1</span><span style="left:30%">1</span><span style="left:51%">5</span><span style="left:70%">20</span><span style="left:91%">100</span><span style="left:100%;transform:translateX(-100%)">200</span>`
-        : `<span style="left:0%">0.1</span><span style="left:28%">1</span><span style="left:57%">10</span><span style="left:78%">50</span><span style="left:90%">100</span><span style="left:100%;transform:translateX(-100%)">300</span>`;
+    
+    // El càlcul de posició logarítmica és: pos = (log(v) - log(min)) / (log(max) - log(min))
+    // Daily (0.1 a 200): divisor = log10(200) - log10(0.1) = 2.301 + 1 = 3.301
+    // Weekly (0.1 a 300): divisor = log10(300) - log10(0.1) = 2.477 + 1 = 3.477
+
+    let marks = "";
+    let ticks = "";
+
+    if (viewMode === 'daily') {
+        const d = 3.301;
+        const pts = [0.1, 1, 5, 20, 100, 200];
+        pts.forEach(v => {
+            let pos = ((Math.log10(v) + 1) / d) * 100;
+            marks += `<span style="left:${pos}%"></span>`;
+            ticks += `<span style="left:${pos}%">${v}</span>`;
+        });
+    } else {
+        const d = 3.477;
+        const pts = [0.1, 1, 10, 50, 100, 300];
+        pts.forEach(v => {
+            let pos = ((Math.log10(v) + 1) / d) * 100;
+            marks += `<span style="left:${pos}%"></span>`;
+            ticks += `<span style="left:${pos}%">${v}</span>`;
+        });
+    }
 
     this._div.innerHTML = `
-        <b>${title}</b><br>
+        <b>${title} <small>(log)</small></b><br>
         <div class="colorbar"></div>
-        <div style="position: relative; width: 100%; height: 15px; font-size: 10px; margin-top: 2px;">
-            ${ticks}
-        </div>`;
+        <div class="tick-mark-container">${marks}</div>
+        <div class="tick-container">${ticks}</div>`;
 };
 legend.addTo(map);
 
-// --- UTILITATS DE DATA ---
+// --- FUNCIONS DE DATA ---
 function getWeekRange(date) {
     let d = new Date(date);
     let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6:1);
@@ -181,31 +204,26 @@ function getWeekRange(date) {
     const fmtHuman = (date) => date.toLocaleDateString('ca-ES', {day:'2-digit', month:'2-digit'});
     
     return {
-        start: fmt(monday),
-        end: fmt(sunday),
-        label: `${fmtHuman(monday)} al ${fmtHuman(sunday)}`
+        start: fmt(monday), end: fmt(sunday),
+        label: `Setmana: ${fmtHuman(monday)} al ${fmtHuman(sunday)}`
     };
 }
 
-// --- LOGICA DE CARREGA ---
 async function updateView() {
     const statusMsg = document.getElementById("statusMsg");
     const datePicker = document.getElementById("datePicker");
-    const weekRangeDisplay = document.getElementById("weekRangeDisplay");
-    const titleHeader = document.getElementById("titleHeader");
+    const weekDisplay = document.getElementById("weekRangeDisplay");
     
     let path = "";
     if (viewMode === 'daily') {
         const dateVal = datePicker.value.replace(/-/g, "");
         path = `acumulats_diaris/acumulat_${dateVal}.png`;
-        weekRangeDisplay.style.display = "none";
-        titleHeader.textContent = "Acumulat Diari de Precipitació";
+        weekDisplay.style.display = "none";
     } else {
         const range = getWeekRange(datePicker.value);
         path = `acumulats_setmanals/setmanal_${range.start}_${range.end}.png`;
-        weekRangeDisplay.textContent = `Setmana: ${range.label}`;
-        weekRangeDisplay.style.display = "block";
-        titleHeader.textContent = "Acumulat Setmanal de Precipitació";
+        weekDisplay.textContent = range.label;
+        weekDisplay.style.display = "block";
     }
 
     statusMsg.textContent = "Buscant...";
@@ -218,10 +236,10 @@ async function updateView() {
             opacity: document.getElementById("opacitySlider").value, zIndex: 500 
         }).addTo(map);
         statusMsg.style.color = "green";
-        statusMsg.textContent = "✔ Carregat correctament";
+        statusMsg.textContent = "✔ Carregat";
     };
     img.onerror = () => {
-        statusMsg.style.color = "red";
+        statusMsg.style.color = "#b00";
         statusMsg.textContent = "✖ Sense dades";
         if (overlay) map.removeLayer(overlay);
         overlay = null;
@@ -230,7 +248,7 @@ async function updateView() {
     legend.update();
 }
 
-// --- EVENTS ---
+// --- CONTROLS DE CAPÇALERA (MODES) ---
 document.getElementById("modeDaily").onclick = function() {
     viewMode = 'daily';
     this.classList.add("active");
@@ -245,6 +263,7 @@ document.getElementById("modeWeekly").onclick = function() {
     updateView();
 };
 
+// --- NAVEGACIÓ LATERAL ---
 document.getElementById("prevBtn").onclick = () => {
     let d = new Date(datePicker.value);
     d.setDate(d.getDate() - (viewMode === 'daily' ? 1 : 7));
@@ -262,7 +281,7 @@ document.getElementById("nextBtn").onclick = () => {
 document.getElementById("datePicker").onchange = updateView;
 document.getElementById("opacitySlider").oninput = (e) => { if (overlay) overlay.setOpacity(e.target.value); };
 
-// Toggle Menu
+// Toggle Menu Logic
 const toggleBtn = document.getElementById("toggleMenu");
 const mainControl = document.getElementById("mainControl");
 toggleBtn.onclick = () => {
@@ -274,7 +293,7 @@ toggleBtn.onclick = () => {
     }
 };
 
-// Catalunya Layer
+// Overlay Catalunya
 document.getElementById("checkCatalunya").onchange = function() {
     if (this.checked) {
         overlayCatalunya = L.imageOverlay(pathCatalunya, boundsCatalunya, { opacity: 0.6, zIndex: 400 }).addTo(map);
@@ -290,13 +309,13 @@ map.on('locationfound', (e) => {
     userMarker = L.circleMarker(e.latlng, { radius: 7, color: 'white', fillColor: '#28a745', fillOpacity: 1, weight: 2 }).addTo(map);
 });
 
-// Inicialització
+// INIT
 async function init() {
     try {
         const response = await fetch('bounds.json');
         const data = await response.json();
         imageBounds = [[data.lat_min, data.lon_min], [data.lat_max, data.lon_max]];
-    } catch (e) { console.error("Usant bounds per defecte"); }
+    } catch (e) { console.error("Bounds default"); }
     
     let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
     document.getElementById("datePicker").value = yesterday.toISOString().slice(0,10);
