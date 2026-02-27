@@ -3,101 +3,46 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Visor Acumulats Radar</title>
-
+    <title>Visor Acumulats Radar + Estacions</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
     <style>
         html, body { height: 100%; margin: 0; overflow: hidden; font-family: -apple-system, system-ui, sans-serif; }
-        
-        /* HEADER AMB SELECTOR */
         .header {
             position: absolute; top: 0; left: 0; right: 0; height: 60px;
             background: #1a1a1a; color: white; display: flex; align-items: center;
-            justify-content: space-between; padding: 0 16px; z-index: 2000; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            justify-content: space-between; padding: 0 16px; z-index: 2000; box-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
-        .header-title { font-weight: bold; font-size: 15px; letter-spacing: 0.5px; }
-
-        .header-tabs { display: flex; background: #333; border-radius: 8px; padding: 3px; gap: 2px; }
         .header-tabs button {
             background: transparent; border: none; color: #aaa; padding: 6px 12px;
             cursor: pointer; font-weight: bold; font-size: 12px; border-radius: 6px;
-            transition: all 0.2s;
         }
         .header-tabs button.active { background: #007bff; color: white; }
-
         #map { position: absolute; top: 60px; bottom: 0; width: 100%; background: #f0f0f0; }
-
-        /* CONTROLS LATERALS */
         .control {
-            position: absolute; background: white; z-index: 1500;
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
-            display: flex; flex-direction: column; gap: 10px; align-items: center;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            position: absolute; background: white; z-index: 1500; padding: 15px;
+            display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-
-        #toggleMenu {
-            position: absolute; background: white; border: 1px solid #ccc;
-            border-radius: 50%; width: 42px; height: 42px; cursor: pointer;
-            z-index: 2100; display: flex; align-items: center; justify-content: center;
-            font-size: 18px; box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        /* Estil per a les etiquetes de les estacions */
+        .station-label {
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(0,0,0,0.2);
+            border-radius: 3px;
+            text-align: center;
+            font-size: 10px;
+            font-weight: bold;
+            color: #333;
+            pointer-events: none !important;
         }
-
-        #btnLocate {
-            width: 100%; padding: 10px; background: #28a745; color: white;
-            border: none; border-radius: 8px; font-weight: bold; cursor: pointer;
-            font-size: 12px;
-        }
-
-        .nav-arrows { display: flex; gap: 8px; width: 100%; }
-        .nav-arrows button { 
-            cursor: pointer; padding: 8px; flex: 1; border: 1px solid #ddd; 
-            border-radius: 8px; background: #f8f9fa; font-size: 12px; font-weight: bold;
-        }
-
-        .status { font-size: 12px; color: #444; font-weight: bold; text-align: center; }
-        .week-info { font-size: 11px; color: #007bff; font-weight: bold; margin-bottom: 4px; display: none; text-align: center;}
-
-        /* LLEGENDA I COLORBAR */
-        .legend-box {
-            background: rgba(255, 255, 255, 0.95); border: 1px solid #bbb;
-            padding: 10px 15px; border-radius: 10px; z-index: 1400; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .colorbar { 
-            background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); 
-            height:16px; width:100%; border:1px solid #666; margin-top:5px; border-radius: 2px;
-        }
-        .tick-container { position: relative; width: 100%; height: 18px; font-size: 10px; font-family: sans-serif; margin-top: 4px; }
-        .tick-container span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
-        .tick-mark-container { position: relative; width: 100%; height: 5px; }
-        .tick-mark-container span { position: absolute; border-left: 1px solid #333; height: 5px; }
-
-        @media (min-width: 601px) {
-            .control { top: 80px; right: 20px; width: 260px; border-radius: 12px; padding: 18px; }
-            .control.minimized { transform: translateX(350px); opacity: 0; }
-            #toggleMenu { top: 75px; right: 20px; } 
-            .legend-box { position: absolute; bottom: 30px; right: 20px; width: 280px; }
-        }
-
-        @media (max-width: 600px) {
-            .header-title { font-size: 13px; max-width: 40%; }
-            .control { bottom: 0; left: 0; right: 0; width: 100%; border-radius: 20px 20px 0 0; padding: 15px 20px 30px 20px; box-sizing: border-box; }
-            .control.minimized { transform: translateY(100%); }
-            #toggleMenu { bottom: 20px; right: 20px; }
-            #toggleMenu.on-top { bottom: 260px; } 
-            .legend-box { 
-                position: fixed !important; width: 250px !important; left: 50% !important; 
-                transform: translateX(-50%) !important; bottom: 220px !important; 
-            }
-            .legend-box.lowered { bottom: 30px !important; }
-        }
+        @media (min-width: 601px) { .control { top: 80px; right: 20px; width: 260px; border-radius: 12px; } }
+        @media (max-width: 600px) { .control { bottom: 0; width: 100%; border-radius: 20px 20px 0 0; box-sizing: border-box; } }
+        .legend-box { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .colorbar { height:12px; width:100%; background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <div class="header-title" id="titleHeader">Radar Meteocat</div>
+    <div id="titleHeader" style="font-weight:bold">Radar + Estacions</div>
     <div class="header-tabs">
         <button id="modeDaily" class="active">DIARI</button>
         <button id="modeWeekly">SETMANAL</button>
@@ -107,222 +52,137 @@
 <div id="map"></div>
 
 <div class="control" id="mainControl">
-    <div id="dateSelector" style="width: 100%;">
-        <div id="weekRangeDisplay" class="week-info">--</div>
-        <input id="datePicker" type="date" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; margin-bottom: 10px; box-sizing: border-box; font-family: inherit;">
-        <div class="nav-arrows">
-            <button id="prevBtn">◀ Anterior</button>
-            <button id="nextBtn">Següent ▶</button>
-        </div>
+    <div id="weekRangeDisplay" style="font-size:11px; color:#007bff; font-weight:bold; text-align:center; display:none;">--</div>
+    <input id="datePicker" type="date" style="width:100%; padding:8px; margin-bottom:5px;">
+    
+    <div style="display:flex; gap:5px; margin-bottom:10px;">
+        <button id="prevBtn" style="flex:1">◀</button>
+        <button id="nextBtn" style="flex:1">▶</button>
     </div>
 
-    <div class="status" id="statusMsg">Carregant...</div>
+    <div id="statusMsg" style="font-size:12px; text-align:center; margin-bottom:5px;">Iniciant...</div>
 
-    <div style="width: 100%; border-top: 1px solid #eee; padding-top: 5px;">
-        <div style="display:flex; align-items:center; gap:10px; width: 100%; margin: 8px 0;">
-            <span style="font-size:11px; font-weight: bold;">Opacitat:</span>
-            <input id="opacitySlider" type="range" min="0" max="1" step="0.05" value="0.8" style="flex-grow:1; cursor: pointer;">
-        </div>
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; font-weight: bold;">
-            <input type="checkbox" id="checkCatalunya"> Mapa Catalunya (PNG)
-        </label>
-    </div>
-
-    <button id="btnLocate">📍 La meva ubicació</button>
+    <label style="font-size:12px; display:flex; align-items:center; gap:5px;">
+        <input type="checkbox" id="checkStations" checked> Veure dades estacions (mm)
+    </label>
+    <label style="font-size:12px; display:flex; align-items:center; gap:5px;">
+        <input type="checkbox" id="checkCatalunya"> Mapa Catalunya (PNG)
+    </label>
+    
+    <input id="opacitySlider" type="range" min="0" max="1" step="0.1" value="0.8">
 </div>
 
-<button id="toggleMenu">✖</button>
-
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
 <script>
-let imageBounds = [[40.0, 0.0], [43.5, 3.8]]; 
-const boundsCatalunya = [[40.4795, 0.1472], [43.0236, 3.4889]];
-const pathCatalunya = 'mapa_aspect_mercator.png'; 
-
 var map = L.map('map', { zoomControl: false }).setView([41.7, 1.8], 7);
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
-L.control.zoom({ position: 'topright' }).addTo(map);
 
-var overlay = null;
-let overlayCatalunya = null;
-var userMarker = null;
-let viewMode = 'daily'; 
+var overlayRadar = null;
+var stationsLayer = L.layerGroup().addTo(map);
+var viewMode = 'daily';
 
-// --- LLEGENDA DINÀMICA AMB TICKS CALCULATS ---
-var legend = L.control({ position: "bottomright" });
-legend.onAdd = function() {
-    this._div = L.DomUtil.create("div", "legend-box");
-    this.update();
-    return this._div;
-};
-
-legend.update = function() {
-    let title = viewMode === 'daily' ? "Acumulat Diari (mm)" : "Acumulat Setmanal (mm)";
+// Funció per calcular dates
+function getDates(dateIn) {
+    let d = new Date(dateIn);
+    const fmt = (date) => date.toISOString().slice(0,10).replace(/-/g, "");
     
-    // El càlcul de posició logarítmica és: pos = (log(v) - log(min)) / (log(max) - log(min))
-    // Daily (0.1 a 200): divisor = log10(200) - log10(0.1) = 2.301 + 1 = 3.301
-    // Weekly (0.1 a 300): divisor = log10(300) - log10(0.1) = 2.477 + 1 = 3.477
-
-    let marks = "";
-    let ticks = "";
-
-    if (viewMode === 'daily') {
-        const d = 3.301;
-        const pts = [0.1, 1, 5, 20, 100, 200];
-        pts.forEach(v => {
-            let pos = ((Math.log10(v) + 1) / d) * 100;
-            marks += `<span style="left:${pos}%"></span>`;
-            ticks += `<span style="left:${pos}%">${v}</span>`;
-        });
-    } else {
-        const d = 3.477;
-        const pts = [0.1, 1, 10, 50, 100, 300];
-        pts.forEach(v => {
-            let pos = ((Math.log10(v) + 1) / d) * 100;
-            marks += `<span style="left:${pos}%"></span>`;
-            ticks += `<span style="left:${pos}%">${v}</span>`;
-        });
-    }
-
-    this._div.innerHTML = `
-        <b>${title} <small>(log)</small></b><br>
-        <div class="colorbar"></div>
-        <div class="tick-mark-container">${marks}</div>
-        <div class="tick-container">${ticks}</div>`;
-};
-legend.addTo(map);
-
-// --- FUNCIONS DE DATA ---
-function getWeekRange(date) {
-    let d = new Date(date);
-    let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6:1);
+    // Setmana Natural (Dl-Dg)
+    let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
     let monday = new Date(d.setDate(diff));
     let sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
-    
-    const fmt = (date) => date.toISOString().slice(0,10).replace(/-/g, "");
-    const fmtHuman = (date) => date.toLocaleDateString('ca-ES', {day:'2-digit', month:'2-digit'});
-    
+
+    // Setmana de Prova (Acaba en el dia triat)
+    let endTrial = new Date(dateIn);
+    let startTrial = new Date(dateIn); startTrial.setDate(startTrial.getDate() - 6);
+
     return {
-        start: fmt(monday), end: fmt(sunday),
-        label: `Setmana: ${fmtHuman(monday)} al ${fmtHuman(sunday)}`
+        daily: fmt(new Date(dateIn)),
+        weeklyStart: fmt(monday),
+        weeklyEnd: fmt(sunday),
+        trialStart: fmt(startTrial),
+        trialEnd: fmt(endTrial)
     };
 }
 
 async function updateView() {
-    const statusMsg = document.getElementById("statusMsg");
-    const datePicker = document.getElementById("datePicker");
+    const dates = getDates(document.getElementById("datePicker").value);
+    const status = document.getElementById("statusMsg");
     const weekDisplay = document.getElementById("weekRangeDisplay");
     
-    let path = "";
+    if (overlayRadar) map.removeLayer(overlayRadar);
+    stationsLayer.clearLayers();
+
     if (viewMode === 'daily') {
-        const dateVal = datePicker.value.replace(/-/g, "");
-        path = `acumulats_diaris/acumulat_${dateVal}.png`;
         weekDisplay.style.display = "none";
+        loadRadar(`acumulats_diaris/acumulat_${dates.daily}.png`);
     } else {
-        const range = getWeekRange(datePicker.value);
-        path = `acumulats_setmanals/setmanal_${range.start}_${range.end}.png`;
-        weekDisplay.textContent = range.label;
         weekDisplay.style.display = "block";
+        weekDisplay.textContent = `Setmana fins al ${dates.trialEnd.slice(6,8)}/${dates.trialEnd.slice(4,6)}`;
+        
+        // Intentem carregar primer la setmana natural, si falla, carregar la "trial" (la teva prova)
+        let pathNatural = `acumulats_setmanals/setmanal_${dates.weeklyStart}_${dates.weeklyEnd}.png`;
+        let pathTrial = `acumulats_setmanals/setmanal_${dates.trialStart}_${dates.trialEnd}.png`;
+        
+        loadRadar(pathNatural, async (success) => {
+            if (!success) {
+                loadRadar(pathTrial);
+                loadStations(dates.trialStart, dates.trialEnd);
+            } else {
+                loadStations(dates.weeklyStart, dates.weeklyEnd);
+            }
+        });
     }
+}
 
-    statusMsg.textContent = "Buscant...";
-    statusMsg.style.color = "#444";
-
+function loadRadar(path, callback) {
     const img = new Image();
     img.onload = () => {
-        if (overlay) map.removeLayer(overlay);
-        overlay = L.imageOverlay(path, imageBounds, { 
-            opacity: document.getElementById("opacitySlider").value, zIndex: 500 
+        overlayRadar = L.imageOverlay(path, [[40.0, 0.0], [43.5, 3.8]], { 
+            opacity: document.getElementById("opacitySlider").value 
         }).addTo(map);
-        statusMsg.style.color = "green";
-        statusMsg.textContent = "✔ Carregat";
+        document.getElementById("statusMsg").textContent = "✔ Carregat";
+        if(callback) callback(true);
     };
     img.onerror = () => {
-        statusMsg.style.color = "#b00";
-        statusMsg.textContent = "✖ Sense dades";
-        if (overlay) map.removeLayer(overlay);
-        overlay = null;
+        document.getElementById("statusMsg").textContent = "✖ Arxiu no trobat";
+        if(callback) callback(false);
     };
     img.src = path;
-    legend.update();
 }
 
-// --- CONTROLS DE CAPÇALERA (MODES) ---
-document.getElementById("modeDaily").onclick = function() {
-    viewMode = 'daily';
-    this.classList.add("active");
-    document.getElementById("modeWeekly").classList.remove("active");
-    updateView();
-};
-
-document.getElementById("modeWeekly").onclick = function() {
-    viewMode = 'weekly';
-    this.classList.add("active");
-    document.getElementById("modeDaily").classList.remove("active");
-    updateView();
-};
-
-// --- NAVEGACIÓ LATERAL ---
-document.getElementById("prevBtn").onclick = () => {
-    let d = new Date(datePicker.value);
-    d.setDate(d.getDate() - (viewMode === 'daily' ? 1 : 7));
-    datePicker.value = d.toISOString().slice(0,10);
-    updateView();
-};
-
-document.getElementById("nextBtn").onclick = () => {
-    let d = new Date(datePicker.value);
-    d.setDate(d.getDate() + (viewMode === 'daily' ? 1 : 7));
-    datePicker.value = d.toISOString().slice(0,10);
-    updateView();
-};
-
-document.getElementById("datePicker").onchange = updateView;
-document.getElementById("opacitySlider").oninput = (e) => { if (overlay) overlay.setOpacity(e.target.value); };
-
-// Toggle Menu Logic
-const toggleBtn = document.getElementById("toggleMenu");
-const mainControl = document.getElementById("mainControl");
-toggleBtn.onclick = () => {
-    const isMinimized = mainControl.classList.toggle("minimized");
-    toggleBtn.innerHTML = isMinimized ? "☰" : "✖";
-    if (window.innerWidth <= 600) {
-        toggleBtn.classList.toggle("on-top", !isMinimized);
-        document.querySelector(".legend-box").classList.toggle("lowered", isMinimized);
-    }
-};
-
-// Overlay Catalunya
-document.getElementById("checkCatalunya").onchange = function() {
-    if (this.checked) {
-        overlayCatalunya = L.imageOverlay(pathCatalunya, boundsCatalunya, { opacity: 0.6, zIndex: 400 }).addTo(map);
-    } else if (overlayCatalunya) {
-        map.removeLayer(overlayCatalunya);
-    }
-};
-
-// GPS
-document.getElementById("btnLocate").onclick = () => map.locate({setView: true, maxZoom: 10});
-map.on('locationfound', (e) => {
-    if (userMarker) map.removeLayer(userMarker);
-    userMarker = L.circleMarker(e.latlng, { radius: 7, color: 'white', fillColor: '#28a745', fillOpacity: 1, weight: 2 }).addTo(map);
-});
-
-// INIT
-async function init() {
+async function loadStations(start, end) {
+    if (!document.getElementById("checkStations").checked) return;
     try {
-        const response = await fetch('bounds.json');
-        const data = await response.json();
-        imageBounds = [[data.lat_min, data.lon_min], [data.lat_max, data.lon_max]];
-    } catch (e) { console.error("Bounds default"); }
-    
-    let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-    document.getElementById("datePicker").value = yesterday.toISOString().slice(0,10);
-    updateView();
+        const res = await fetch(`acumulats_setmanals/estacions_${start}_${end}.json`);
+        const data = await res.json();
+        L.geoJSON(data, {
+            pointToLayer: (feature, latlng) => {
+                return L.marker(latlng, {
+                    icon: L.divIcon({
+                        className: 'station-label',
+                        html: feature.properties.pluja,
+                        iconSize: [25, 15]
+                    })
+                }).bindTooltip(`${feature.properties.nom}: ${feature.properties.pluja} mm`);
+            }
+        }).addTo(stationsLayer);
+    } catch (e) { console.log("JSON no trobat"); }
 }
 
-init();
+// Botons de Mode
+document.getElementById("modeDaily").onclick = function() { viewMode='daily'; this.classList.add('active'); document.getElementById("modeWeekly").classList.remove('active'); updateView(); };
+document.getElementById("modeWeekly").onclick = function() { viewMode='weekly'; this.classList.add('active'); document.getElementById("modeDaily").classList.remove('active'); updateView(); };
+
+// Controls
+document.getElementById("datePicker").onchange = updateView;
+document.getElementById("checkStations").onchange = updateView;
+document.getElementById("prevBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()-1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
+document.getElementById("nextBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()+1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
+
+// Inici
+let d = new Date(); d.setDate(d.getDate()-1);
+document.getElementById("datePicker").value = d.toISOString().slice(0,10);
+updateView();
 </script>
 </body>
 </html>
