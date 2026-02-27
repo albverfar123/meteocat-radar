@@ -2,8 +2,6 @@ name: Acumulat Diari Radar
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 2 * * *' # S'executa cada dia a les 02:00 AM
 
 permissions:
   contents: write
