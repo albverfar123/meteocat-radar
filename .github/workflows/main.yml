@@ -24,16 +24,16 @@ jobs:
         run: python radar_to_nc.py
 
       # En lloc de fer Push, pugem el fitxer .nc a Artifacts
-      - name: Guardar radar com artifact
-        uses: actions/upload-artifact@v4
-        with:
-          # Fem servir un nom d'artifact que inclogui el dia
-          # Això permetrà que el workflow diari els trobi tots junts
-          name: radar-${{ github.run_id }} # Nom únic per a cada "paquet"
-          path: dades_radar/*.nc
-          retention-days: 1 # Mantenim el mínim de temps possible (24h)
-
-      - name: Commit i Push dels canvis
+      - name: Executar script de descàrrega
+        run: python radar_to_nc.py
+      - name: Commit i Push del fitxer radar
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Afegim el nou fitxer .nc generat a la carpeta dades_radar
+          git add dades_radar/*.nc
+          
+          # Fem el commit. El "|| exit 0" evita que el workflow falli si no hi ha canvis
+          git commit -m "🛰️ Radar: Afegit nou fitxer .nc" || exit 0
+          git push
