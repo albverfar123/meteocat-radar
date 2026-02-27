@@ -22,7 +22,6 @@
             position: absolute; background: white; z-index: 1500; padding: 15px;
             display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        /* Estil per a les etiquetes de les estacions */
         .station-label {
             background: rgba(255, 255, 255, 0.7);
             border: 1px solid rgba(0,0,0,0.2);
@@ -35,8 +34,6 @@
         }
         @media (min-width: 601px) { .control { top: 80px; right: 20px; width: 260px; border-radius: 12px; } }
         @media (max-width: 600px) { .control { bottom: 0; width: 100%; border-radius: 20px 20px 0 0; box-sizing: border-box; } }
-        .legend-box { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .colorbar { height:12px; width:100%; background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); }
     </style>
 </head>
 <body>
@@ -52,7 +49,7 @@
 <div id="map"></div>
 
 <div class="control" id="mainControl">
-    <div id="weekRangeDisplay" style="font-size:11px; color:#007bff; font-weight:bold; text-align:center; display:none;">--</div>
+    <div id="weekRangeDisplay" style="font-size:11px; color:#007bff; font-weight:bold; text-align:center; display:none; margin-bottom:5px;">--</div>
     <input id="datePicker" type="date" style="width:100%; padding:8px; margin-bottom:5px;">
     
     <div style="display:flex; gap:5px; margin-bottom:10px;">
@@ -65,11 +62,8 @@
     <label style="font-size:12px; display:flex; align-items:center; gap:5px;">
         <input type="checkbox" id="checkStations" checked> Veure dades estacions (mm)
     </label>
-    <label style="font-size:12px; display:flex; align-items:center; gap:5px;">
-        <input type="checkbox" id="checkCatalunya"> Mapa Catalunya (PNG)
-    </label>
     
-    <input id="opacitySlider" type="range" min="0" max="1" step="0.1" value="0.8">
+    <input id="opacitySlider" type="range" min="0" max="1" step="0.1" value="0.8" style="width:100%; margin-top:5px;">
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -80,20 +74,18 @@ L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 var overlayRadar = null;
 var stationsLayer = L.layerGroup().addTo(map);
 var viewMode = 'daily';
-var radarBounds = null; // Variable global per als límits
+var radarBounds = null;
 
-/ 1. Modificació de la funció getDates per retornar també l'inici formatat per a la UI
+// 1. Funció per calcular dates
 function getDates(dateIn) {
     let d = new Date(dateIn);
     const fmt = (date) => date.toISOString().slice(0,10).replace(/-/g, "");
     const fmtUI = (date) => `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
     
-    // Setmana Natural (Dl-Dg)
     let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
-    let monday = new Date(d.setDate(diff));
-    let sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+    let monday = new Date(d.getTime()); monday.setDate(diff);
+    let sunday = new Date(monday.getTime()); sunday.setDate(monday.getDate() + 6);
 
-    // Setmana de Prova (Acaba en el dia triat)
     let endTrial = new Date(dateIn);
     let startTrial = new Date(dateIn); startTrial.setDate(startTrial.getDate() - 6);
 
@@ -103,7 +95,6 @@ function getDates(dateIn) {
         weeklyEnd: fmt(sunday),
         trialStart: fmt(startTrial),
         trialEnd: fmt(endTrial),
-        // Nous camps per a la visualització UI
         uiStart: fmtUI(startTrial),
         uiEnd: fmtUI(endTrial),
         uiStartNat: fmtUI(monday),
@@ -111,21 +102,17 @@ function getDates(dateIn) {
     };
 }
 
-// Carregar els límits una sola vegada des de bounds.json
 async function initMap() {
     try {
         const response = await fetch('bounds.json');
         const b = await response.json();
         radarBounds = [[b.lat_min, b.lon_min], [b.lat_max, b.lon_max]];
-        console.log("Límits carregats:", radarBounds);
     } catch (e) {
-        console.error("Error carregant bounds.json, usant valors fallback", e);
         radarBounds = [[40.0, 0.0], [43.5, 3.8]]; 
     }
     updateView(); 
 }
 
-// 2. Modificació de updateView per mostrar el rang i llegir els dies vàlids
 async function updateView() {
     if (!radarBounds) return;
 
@@ -148,41 +135,37 @@ async function updateView() {
 
         loadRadar(pathNatural, async (success) => {
             if (!success) {
-                // Mode Setmana de Prova
                 weekDisplay.textContent = `Setmana del ${dates.uiStart} al ${dates.uiEnd}`;
                 resumPath = `acumulats_setmanals/resum_${dates.trialStart}_${dates.trialEnd}.txt`;
                 loadRadar(pathTrial);
                 loadStations(dates.trialStart, dates.trialEnd);
             } else {
-                // Mode Setmana Natural
                 weekDisplay.textContent = `Setmana del ${dates.uiStartNat} al ${dates.uiEndNat}`;
                 resumPath = `acumulats_setmanals/resum_${dates.weeklyStart}_${dates.weeklyEnd}.txt`;
                 loadStations(dates.weeklyStart, dates.weeklyEnd);
             }
 
-            // Lògica per mostrar els dies vàlids (llegint el resum.txt)
+            // Actualitzar dies pluja
             try {
                 const res = await fetch(resumPath);
+                if (!res.ok) throw new Error();
                 const text = await res.text();
-                const lines = text.split('\n');
                 let diesValids = [];
-                
-                lines.forEach(line => {
+                text.split('\n').forEach(line => {
                     if (line.includes("PLUJA")) {
-                        // Extraiem la data YYYYMMDD i la girem a DD/MM
-                        let match = line.match(/^(\d{4})(\d{2})(\d{2}):/);
-                        if (match) diesValids.push(`${match[3]}/${match[2]}`);
+                        let m = line.match(/^(\d{4})(\d{2})(\d{2}):/);
+                        if (m) diesValids.push(`${m[3]}/${m[2]}`);
                     }
                 });
-
                 let msgDies = diesValids.length > 0 ? diesValids.join(", ") : "cap";
                 status.innerHTML = `✔ Carregat<br><span style="font-size:10px; color:#666">Dies pluja: ${msgDies}</span>`;
             } catch (e) {
-                console.log("No s'ha pogut carregar el resum de dies");
+                status.innerHTML = `✔ Carregat`;
             }
         });
     }
 }
+
 async function loadRadar(path, callback) {
     const img = new Image();
     img.onload = () => {
@@ -215,30 +198,25 @@ async function loadStations(start, end) {
                 }).bindTooltip(`${feature.properties.nom}: ${feature.properties.pluja} mm`);
             }
         }).addTo(stationsLayer);
-    } catch (e) { console.log("JSON no trobat"); }
+    } catch (e) {}
 }
 
-// Botons de Mode
 document.getElementById("modeDaily").onclick = function() { viewMode='daily'; this.classList.add('active'); document.getElementById("modeWeekly").classList.remove('active'); updateView(); };
 document.getElementById("modeWeekly").onclick = function() { viewMode='weekly'; this.classList.add('active'); document.getElementById("modeDaily").classList.remove('active'); updateView(); };
 
-// Controls
 document.getElementById("datePicker").onchange = updateView;
 document.getElementById("checkStations").onchange = updateView;
 document.getElementById("prevBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()-1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
 document.getElementById("nextBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()+1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
 
-// Inici des de initMap per carregar coordenades primer
-let d = new Date(); d.setDate(d.getDate()-1);
-document.getElementById("datePicker").value = d.toISOString().slice(0,10);
-initMap();
-
-// Control dinàmic de l'opacitat
 document.getElementById("opacitySlider").oninput = function() {
-    if (overlayRadar) {
-        overlayRadar.setOpacity(this.value);
-    }
+    if (overlayRadar) overlayRadar.setOpacity(this.value);
 };
+
+// Inicialització
+let dInit = new Date(); dInit.setDate(dInit.getDate()-1);
+document.getElementById("datePicker").value = dInit.toISOString().slice(0,10);
+initMap();
 </script>
 </body>
 </html>
