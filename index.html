@@ -82,10 +82,11 @@ var stationsLayer = L.layerGroup().addTo(map);
 var viewMode = 'daily';
 var radarBounds = null; // Variable global per als límits
 
-// Funció per calcular dates
+/ 1. Modificació de la funció getDates per retornar també l'inici formatat per a la UI
 function getDates(dateIn) {
     let d = new Date(dateIn);
     const fmt = (date) => date.toISOString().slice(0,10).replace(/-/g, "");
+    const fmtUI = (date) => `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}`;
     
     // Setmana Natural (Dl-Dg)
     let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
@@ -101,7 +102,12 @@ function getDates(dateIn) {
         weeklyStart: fmt(monday),
         weeklyEnd: fmt(sunday),
         trialStart: fmt(startTrial),
-        trialEnd: fmt(endTrial)
+        trialEnd: fmt(endTrial),
+        // Nous camps per a la visualització UI
+        uiStart: fmtUI(startTrial),
+        uiEnd: fmtUI(endTrial),
+        uiStartNat: fmtUI(monday),
+        uiEndNat: fmtUI(sunday)
     };
 }
 
@@ -119,8 +125,9 @@ async function initMap() {
     updateView(); 
 }
 
+// 2. Modificació de updateView per mostrar el rang i llegir els dies vàlids
 async function updateView() {
-    if (!radarBounds) return; // Esperar a que initMap hagi carregat els límits
+    if (!radarBounds) return;
 
     const dates = getDates(document.getElementById("datePicker").value);
     const status = document.getElementById("statusMsg");
@@ -134,22 +141,48 @@ async function updateView() {
         loadRadar(`acumulats_diaris/acumulat_${dates.daily}.png`);
     } else {
         weekDisplay.style.display = "block";
-        weekDisplay.textContent = `Setmana fins al ${dates.trialEnd.slice(6,8)}/${dates.trialEnd.slice(4,6)}`;
         
         let pathNatural = `acumulats_setmanals/setmanal_${dates.weeklyStart}_${dates.weeklyEnd}.png`;
         let pathTrial = `acumulats_setmanals/setmanal_${dates.trialStart}_${dates.trialEnd}.png`;
-        
+        let resumPath = "";
+
         loadRadar(pathNatural, async (success) => {
             if (!success) {
+                // Mode Setmana de Prova
+                weekDisplay.textContent = `Setmana del ${dates.uiStart} al ${dates.uiEnd}`;
+                resumPath = `acumulats_setmanals/resum_${dates.trialStart}_${dates.trialEnd}.txt`;
                 loadRadar(pathTrial);
                 loadStations(dates.trialStart, dates.trialEnd);
             } else {
+                // Mode Setmana Natural
+                weekDisplay.textContent = `Setmana del ${dates.uiStartNat} al ${dates.uiEndNat}`;
+                resumPath = `acumulats_setmanals/resum_${dates.weeklyStart}_${dates.weeklyEnd}.txt`;
                 loadStations(dates.weeklyStart, dates.weeklyEnd);
+            }
+
+            // Lògica per mostrar els dies vàlids (llegint el resum.txt)
+            try {
+                const res = await fetch(resumPath);
+                const text = await res.text();
+                const lines = text.split('\n');
+                let diesValids = [];
+                
+                lines.forEach(line => {
+                    if (line.includes("PLUJA")) {
+                        // Extraiem la data YYYYMMDD i la girem a DD/MM
+                        let match = line.match(/^(\d{4})(\d{2})(\d{2}):/);
+                        if (match) diesValids.push(`${match[3]}/${match[2]}`);
+                    }
+                });
+
+                let msgDies = diesValids.length > 0 ? diesValids.join(", ") : "cap";
+                status.innerHTML = `✔ Carregat<br><span style="font-size:10px; color:#666">Dies pluja: ${msgDies}</span>`;
+            } catch (e) {
+                console.log("No s'ha pogut carregar el resum de dies");
             }
         });
     }
 }
-
 async function loadRadar(path, callback) {
     const img = new Image();
     img.onload = () => {
