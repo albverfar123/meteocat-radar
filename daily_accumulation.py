@@ -32,20 +32,25 @@ def calculate_daily():
     for f in files:
         file_path = os.path.join(OUTPUT_DIR, f)
         try:
-            # Utilitzem 'with' per assegurar que el fitxer s'allibera immediatament
             with xr.open_dataset(file_path) as ds:
-                data = ds['precipitacio'].fillna(0)
+                # El .load() és la clau: treu les dades del disc i les posa a la RAM
+                data = ds['precipitacio'].fillna(0).load()
                 
                 if total_precip is None:
+                    # Multipliquem per 0.2 (resolució del radar)
                     total_precip = data * 0.2
-                    lon, lat = ds['lon'].load(), ds['lat'].load() # Carreguem coordenades en memòria
+                    lon, lat = ds['lon'].load(), ds['lat'].load()
                 else:
                     total_precip += data * 0.2
                 
                 used_files.append(f)
+            
+            # Forcem el tancament explícit per si de cas
+            ds.close()
+
         except Exception as e:
             print(f"⚠️ Error obrint {f}: {e}")
-
+            
     # 4. Crear el fitxer NetCDF Diari
     ds_daily = xr.Dataset(
         {"precipitacio_acumulada": (["lat", "lon"], total_precip.values)},
@@ -108,5 +113,6 @@ def generate_daily_png(data, lon, lat, date_str):
 
 if __name__ == "__main__":
     calculate_daily()
+
 
 
