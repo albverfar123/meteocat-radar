@@ -1,0 +1,39 @@
+name: Acumulat Setmanal Radar
+
+on:
+  workflow_dispatch: # Manual
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install requests xarray numpy netCDF4 matplotlib
+
+      - name: Run weekly accumulation
+        run: python weekly_accumulation.py
+        env:
+          # Si vols amagar la key, posa-la a Secrets del repo
+          METEOCAT_API_KEY: ${{ secrets.METEOCAT_API_KEY }} 
+
+      - name: Commit and Push results
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add acumulats_setmanals/*
+          git commit -m "📅 Acumulat setmanal generat amb validació XEMA" || exit 0
+          git push
