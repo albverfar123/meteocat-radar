@@ -28,12 +28,11 @@
             transition: all 0.3s ease;
         }
         
-        /* Classe per amagar el menú */
         .control.minimized { transform: translateX(calc(100% + 20px)); }
 
         #aspectControl {
             display: none; 
-            bottom: 20px; left: 20px; width: 200px; border-radius: 12px;
+            bottom: 20px; left: 160px; width: 180px; border-radius: 12px;
         }
 
         .station-label {
@@ -53,30 +52,31 @@
         }
         .legend i { width: 12px; height: 12px; float: left; margin-right: 5px; opacity: 0.9; border: 1px solid #ccc; }
 
-        /* Estils Barra Colors Radar */
-        .radar-legend {
+        /* Estils Nova Llegenda Radar */
+        .legend-box {
             background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            width: 40px; height: 180px; position: relative;
+            width: 220px; min-height: 45px;
         }
-        .radar-bar {
-            width: 12px; height: 160px; border: 1px solid #999;
-            background: linear-gradient(to top, #ffffff, #98f5ff, #00ff00, #ffff00, #ff0000, #ff00ff, #000000);
+        .colorbar {
+            height: 12px; width: 100%; position: relative; margin-top: 5px; border: 1px solid #999;
+            background: linear-gradient(to right, #ffffff, #98f5ff, #00ff00, #ffff00, #ff0000, #ff00ff, #000000);
         }
-        .radar-tick { position: absolute; left: 22px; font-size: 9px; width: 30px; line-height: 0; color: #333; }
-        .radar-tick::before { content: ""; position: absolute; left: -10px; width: 6px; border-top: 1px solid #999; }
+        .colorbar span { position: absolute; height: 5px; border-left: 1px solid #333; top: -14px; }
+        .ticks { position: relative; width: 100%; height: 12px; margin-top: 2px; }
+        .ticks span { position: absolute; font-size: 9px; transform: translateX(-50%); }
 
         #btnToggleMenu {
-            position: absolute; top: 80px; right: 20px; z-index: 1600;
-            background: white; border: none; padding: 10px; border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2); cursor: pointer; font-weight: bold;
+            position: absolute; top: 65px; right: 20px; z-index: 1600;
+            background: white; border: none; padding: 8px 12px; border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2); cursor: pointer; font-weight: bold; font-size: 12px;
         }
 
         @media (min-width: 601px) { .control:not(#aspectControl) { top: 80px; right: 20px; width: 260px; border-radius: 12px; } }
         @media (max-width: 600px) { 
             .control:not(#aspectControl) { bottom: 0; width: 100%; border-radius: 20px 20px 0 0; box-sizing: border-box; } 
             .control.minimized { transform: translateY(100%); }
-            #aspectControl { bottom: 180px; left: 10px; width: 150px; }
-            #btnToggleMenu { top: 70px; right: 10px; }
+            #aspectControl { bottom: 180px; left: 140px; width: 130px; }
+            #btnToggleMenu { top: 65px; right: 10px; }
         }
     </style>
 </head>
@@ -91,7 +91,7 @@
     </div>
 </div>
 
-<button id="btnToggleMenu">MEnú</button>
+<button id="btnToggleMenu">Menú</button>
 
 <div id="map"></div>
 
@@ -128,10 +128,45 @@ L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 var overlayRadar = null;
 var aspectLayer = null; 
 var legendControl = null; 
-var radarLegend = null;
 var stationsLayer = L.layerGroup().addTo(map);
 var viewMode = 'daily';
 var radarBounds = null;
+
+// --- LLEGENDA DINÀMICA ---
+var legend = L.control({ position: "bottomright" });
+legend.onAdd = function() {
+    this._div = L.DomUtil.create("div", "legend-box");
+    this.update();
+    return this._div;
+};
+
+legend.update = function() {
+    let title = viewMode === 'daily' ? "Acumulat Diari (mm)" : "Acumulat Setmanal (mm)";
+    let marks = "";
+    let ticks = "";
+
+    if (viewMode === 'daily') {
+        const d = 3.301;
+        const pts = [0.1, 1, 5, 20, 100, 200];
+        pts.forEach(v => {
+            let pos = ((Math.log10(v) + 1) / d) * 100;
+            marks += `<span style="left:${pos}%"></span>`;
+            ticks += `<span style="left:${pos}%">${v}</span>`;
+        });
+    } else {
+        const d = 3.477;
+        const pts = [0.1, 1, 10, 50, 100, 300];
+        pts.forEach(v => {
+            let pos = ((Math.log10(v) + 1) / d) * 100;
+            marks += `<span style="left:${pos}%"></span>`;
+            ticks += `<span style="left:${pos}%">${v}</span>`;
+        });
+    }
+    this._div.innerHTML = `<div style="font-weight:bold; font-size:10px; margin-bottom:5px;">${title}</div>
+                           <div class="colorbar">${marks}</div>
+                           <div class="ticks">${ticks}</div>`;
+};
+legend.addTo(map);
 
 // --- CONTROL DE MENÚ ---
 document.getElementById("btnToggleMenu").onclick = function() {
@@ -139,25 +174,6 @@ document.getElementById("btnToggleMenu").onclick = function() {
     menu.classList.toggle("minimized");
     this.textContent = menu.classList.contains("minimized") ? "Obrir" : "Amagar";
 };
-
-// --- LLEGENDA RADAR LOGARÍTMICA ---
-function updateRadarLegend() {
-    if (radarLegend) map.removeControl(radarLegend);
-    radarLegend = L.control({position: 'bottomright'});
-    radarLegend.onAdd = function () {
-        var div = L.DomUtil.create('div', 'radar-legend');
-        div.innerHTML = '<div class="radar-bar"></div>';
-        const maxVal = (viewMode === 'daily') ? 200 : 300;
-        const ticks = (viewMode === 'daily') ? [0.1, 1, 5, 10, 30, 70, 150, 200] : [0.1, 1, 10, 50, 100, 200, 300];
-        ticks.forEach(val => {
-            let pos = (Math.log10(val + 0.1) - Math.log10(0.2)) / (Math.log10(maxVal) - Math.log10(0.2)) * 160;
-            if (pos < 0) pos = 0; if (pos > 160) pos = 160;
-            div.innerHTML += `<div class="radar-tick" style="bottom: ${pos + 10}px">${val}</div>`;
-        });
-        return div;
-    };
-    radarLegend.addTo(map);
-}
 
 // --- FUNCIONS ASPECTE ---
 function toggleAspect() {
@@ -226,7 +242,7 @@ async function initMap() {
 
 async function updateView() {
     if (!radarBounds) return;
-    updateRadarLegend();
+    legend.update();
     const dates = getDates(document.getElementById("datePicker").value);
     const status = document.getElementById("statusMsg");
     const weekDisplay = document.getElementById("weekRangeDisplay");
