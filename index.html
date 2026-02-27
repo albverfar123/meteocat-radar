@@ -32,7 +32,7 @@
 
         #aspectControl {
             display: none; 
-            bottom: 20px; left: 160px; width: 180px; border-radius: 12px;
+            bottom: 20px; left: 160px; width: 140px; border-radius: 8px;
         }
 
         .station-label {
@@ -75,7 +75,7 @@
         @media (max-width: 600px) { 
             .control:not(#aspectControl) { bottom: 0; width: 100%; border-radius: 20px 20px 0 0; box-sizing: border-box; } 
             .control.minimized { transform: translateY(100%); }
-            #aspectControl { bottom: 180px; left: 140px; width: 130px; }
+            #aspectControl { bottom: 180px; left: 135px; width: 110px; padding: 6px;}
             #btnToggleMenu { top: 65px; right: 10px; }
         }
     </style>
@@ -115,9 +115,8 @@
 </div>
 
 <div id="aspectControl" class="control">
-    <div style="font-size: 11px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px;">Control Aspecte</div>
-    <div style="font-size: 10px; color: #666; margin-top: 5px;">Opacitat:</div>
-    <input id="aspectOpacity" type="range" min="0" max="1" step="0.1" value="0.7" style="width:100%;">
+    <div style="font-size: 10px; font-weight: bold; margin-bottom: 2px;">Aspecte (Opacitat)</div>
+    <input id="aspectOpacity" type="range" min="0" max="1" step="0.1" value="0.7" style="width:100%; cursor:pointer;">
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
