@@ -2,8 +2,6 @@ name: Actualització Radar Meteocat
 
 on:
   workflow_dispatch: # Execució manual
-  schedule:
-    - cron: '*/6 * * * *' # Execució cada 6 minuts (si vols activar-ho ja)
 
 jobs:
   build:
