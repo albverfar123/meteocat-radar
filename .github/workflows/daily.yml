@@ -37,7 +37,9 @@ jobs:
 
       # 2. EXECUTAR L'ACUMULAT I LA NETEJA
       - name: Run daily accumulation
-        run: python daily_accumulation.py
+        run: |
+            mkdir -p dades_radar  # <--- Afegeix això per assegurar la carpeta
+            python daily_accumulation.py
 
       # 3. COMMIT I PUSH DELS RESULTATS
       - name: Commit and Push
