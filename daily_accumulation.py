@@ -11,7 +11,7 @@ DAILY_DIR = "acumulats_diaris"
 
 def calculate_daily():
     # 1. Determinar el dia d'ahir
-    ieri = (datetime.utcnow() - timedelta(days=1)).strftime("%Y%m%d")
+    ieri = datetime.utcnow().strftime("%Y%m%d")
     print(f"📅 Generant acumulat per al dia: {ieri}")
 
     if not os.path.exists(DAILY_DIR):
@@ -145,6 +145,7 @@ def generate_daily_png(data, lon, lat, date_str):
 
 if __name__ == "__main__":
     calculate_daily()
+
 
 
 
