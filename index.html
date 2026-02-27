@@ -199,6 +199,13 @@ document.getElementById("nextBtn").onclick = () => { let d = new Date(datePicker
 let d = new Date(); d.setDate(d.getDate()-1);
 document.getElementById("datePicker").value = d.toISOString().slice(0,10);
 initMap();
+
+// Control dinàmic de l'opacitat
+document.getElementById("opacitySlider").oninput = function() {
+    if (overlayRadar) {
+        overlayRadar.setOpacity(this.value);
+    }
+};
 </script>
 </body>
 </html>
