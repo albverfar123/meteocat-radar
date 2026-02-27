@@ -1,7 +1,9 @@
 name: Actualització Radar Meteocat
 
 on:
-  workflow_dispatch: # Permet executar-lo manualment per provar
+  workflow_dispatch: # Execució manual
+  schedule:
+    - cron: '*/6 * * * *' # Execució cada 6 minuts (si vols activar-ho ja)
 
 jobs:
   build:
@@ -22,6 +24,16 @@ jobs:
 
       - name: Executar script de descàrrega
         run: python radar_to_nc.py
+
+      # En lloc de fer Push, pugem el fitxer .nc a Artifacts
+      - name: Guardar radar com artifact
+        uses: actions/upload-artifact@v4
+        with:
+          # Fem servir un nom d'artifact que inclogui el dia
+          # Això permetrà que el workflow diari els trobi tots junts
+          name: radars-temporals
+          path: dades_radar/*.nc
+          retention-days: 1 # Mantenim el mínim de temps possible (24h)
 
       - name: Commit i Push dels canvis
         run: |
