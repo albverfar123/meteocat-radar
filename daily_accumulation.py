@@ -69,15 +69,34 @@ def calculate_daily():
         f_txt.write("\n".join(used_files))
     print(f"📄 Llista de fonts guardada a: {txt_out_path}")
 
-    # 6. BORRAR ELS FITXERS .NC DE 12 MINUTS UTILITZATS
-    print(f"🗑️ Netejant fitxers temporals del dia {ieri}...")
-    for f in used_files:
-        file_to_delete = os.path.join(OUTPUT_DIR, f)
-        try:
-            os.remove(file_to_delete)
-        except Exception as e:
-            print(f"⚠️ No s'ha pogut esborrar {f}: {e}")
-    print(f"✨ Neteja completada.")
+
+    # 6. BORRAR ELS FITXERS .NC UTILITZATS (Versió Robusta)
+    import gc
+    # Primer alliberem memòria per si Xarray encara bloqueja fitxers
+    del total_precip
+    gc.collect() 
+
+    print(f"🗑️ Iniciant neteja de dades temporals a {OUTPUT_DIR}...")
+    
+    # Busquem tots els fitxers que comencen per radar_YYYYMMDD
+    # Això és més segur que confiar en la llista 'used_files'
+    all_files_in_dir = os.listdir(OUTPUT_DIR)
+    deleted_count = 0
+
+    for f in all_files_in_dir:
+        if f.startswith(f"radar_{ieri}") and f.endswith(".nc"):
+            file_to_delete = os.path.join(OUTPUT_DIR, f)
+            try:
+                os.remove(file_to_delete)
+                print(f"  ❌ Esborrat: {f}")
+                deleted_count += 1
+            except Exception as e:
+                print(f"  ⚠️ Error esborrant {f}: {e}")
+
+    print(f"✨ Neteja completada. S'han eliminat {deleted_count} fitxers.")
+
+    # 7. GENERACIÓ DEL PNG (Passant les dades de nou si cal o abans de del total_precip)
+    # NOTA: Si has fet 'del total_precip', mou la crida de generate_daily_png ABANS del punt 6.
 
     # 7. GENERACIÓ DEL PNG DE L'ACUMULAT
     generate_daily_png(total_precip, lon, lat, ieri)
@@ -113,6 +132,7 @@ def generate_daily_png(data, lon, lat, date_str):
 
 if __name__ == "__main__":
     calculate_daily()
+
 
 
 
