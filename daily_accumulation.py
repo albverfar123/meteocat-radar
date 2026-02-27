@@ -95,17 +95,17 @@ def calculate_daily():
     generate_daily_png(total_precip, lon, lat, ieri)
 
     # 7. BORRAR RADARS (Neteja de la carpeta de treball)
-    print(f"🗑️ Iniciant neteja de dades temporals a {OUTPUT_DIR}...")
-    deleted_count = 0
-    for f in used_files:
-        file_to_delete = os.path.join(OUTPUT_DIR, f)
-        try:
-            os.remove(file_to_delete)
-            deleted_count += 1
-        except Exception as e:
-            print(f"  ⚠️ No s'ha pogut esborrar {f}: {e}")
+    #print(f"🗑️ Iniciant neteja de dades temporals a {OUTPUT_DIR}...")
+    #deleted_count = 0
+    #for f in used_files:
+     #   file_to_delete = os.path.join(OUTPUT_DIR, f)
+      #  try:
+       #     os.remove(file_to_delete)
+        #    deleted_count += 1
+        #except Exception as e:
+         #   print(f"  ⚠️ No s'ha pogut esborrar {f}: {e}")
 
-    print(f"✨ Neteja completada. S'han eliminat {deleted_count} fitxers.")
+ #   print(f"✨ Neteja completada. S'han eliminat {deleted_count} fitxers.")
 
 
 def generate_daily_png(data, lon, lat, date_str):
@@ -145,6 +145,7 @@ def generate_daily_png(data, lon, lat, date_str):
 
 if __name__ == "__main__":
     calculate_daily()
+
 
 
 
