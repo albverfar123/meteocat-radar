@@ -29,7 +29,7 @@ jobs:
         with:
           # Fem servir un nom d'artifact que inclogui el dia
           # Això permetrà que el workflow diari els trobi tots junts
-          name: radars-temporals
+          name: radar-${{ github.run_id }} # Nom únic per a cada "paquet"
           path: dades_radar/*.nc
           retention-days: 1 # Mantenim el mínim de temps possible (24h)
 
