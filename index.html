@@ -80,6 +80,7 @@ L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 var overlayRadar = null;
 var stationsLayer = L.layerGroup().addTo(map);
 var viewMode = 'daily';
+var radarBounds = null; // Variable global per als límits
 
 // Funció per calcular dates
 function getDates(dateIn) {
@@ -104,7 +105,23 @@ function getDates(dateIn) {
     };
 }
 
+// Carregar els límits una sola vegada des de bounds.json
+async function initMap() {
+    try {
+        const response = await fetch('bounds.json');
+        const b = await response.json();
+        radarBounds = [[b.lat_min, b.lon_min], [b.lat_max, b.lon_max]];
+        console.log("Límits carregats:", radarBounds);
+    } catch (e) {
+        console.error("Error carregant bounds.json, usant valors fallback", e);
+        radarBounds = [[40.0, 0.0], [43.5, 3.8]]; 
+    }
+    updateView(); 
+}
+
 async function updateView() {
+    if (!radarBounds) return; // Esperar a que initMap hagi carregat els límits
+
     const dates = getDates(document.getElementById("datePicker").value);
     const status = document.getElementById("statusMsg");
     const weekDisplay = document.getElementById("weekRangeDisplay");
@@ -119,7 +136,6 @@ async function updateView() {
         weekDisplay.style.display = "block";
         weekDisplay.textContent = `Setmana fins al ${dates.trialEnd.slice(6,8)}/${dates.trialEnd.slice(4,6)}`;
         
-        // Intentem carregar primer la setmana natural, si falla, carregar la "trial" (la teva prova)
         let pathNatural = `acumulats_setmanals/setmanal_${dates.weeklyStart}_${dates.weeklyEnd}.png`;
         let pathTrial = `acumulats_setmanals/setmanal_${dates.trialStart}_${dates.trialEnd}.png`;
         
@@ -135,32 +151,19 @@ async function updateView() {
 }
 
 async function loadRadar(path, callback) {
-    // El fitxer de bounds es diu igual que el PNG però amb l'extensió canviada
-    const boundsPath = path.replace('.png', '.json_bounds');
-    
-    try {
-        const res = await fetch(boundsPath);
-        const b = await res.json();
-        const realBounds = [[b.lat_min, b.lon_min], [b.lat_max, b.lon_max]];
-
-        const img = new Image();
-        img.onload = () => {
-            overlayRadar = L.imageOverlay(path, realBounds, { 
-                opacity: document.getElementById("opacitySlider").value 
-            }).addTo(map);
-            document.getElementById("statusMsg").textContent = "✔ Carregat";
-            if(callback) callback(true);
-        };
-        img.onerror = () => {
-            document.getElementById("statusMsg").textContent = "✖ Arxiu no trobat";
-            if(callback) callback(false);
-        };
-        img.src = path;
-
-    } catch (e) {
-        document.getElementById("statusMsg").textContent = "✖ Error coordenades";
+    const img = new Image();
+    img.onload = () => {
+        overlayRadar = L.imageOverlay(path, radarBounds, { 
+            opacity: document.getElementById("opacitySlider").value 
+        }).addTo(map);
+        document.getElementById("statusMsg").textContent = "✔ Carregat";
+        if(callback) callback(true);
+    };
+    img.onerror = () => {
+        document.getElementById("statusMsg").textContent = "✖ Arxiu no trobat";
         if(callback) callback(false);
-    }
+    };
+    img.src = path;
 }
 
 async function loadStations(start, end) {
@@ -192,10 +195,10 @@ document.getElementById("checkStations").onchange = updateView;
 document.getElementById("prevBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()-1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
 document.getElementById("nextBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()+1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
 
-// Inici
+// Inici des de initMap per carregar coordenades primer
 let d = new Date(); d.setDate(d.getDate()-1);
 document.getElementById("datePicker").value = d.toISOString().slice(0,10);
-updateView();
+initMap();
 </script>
 </body>
 </html>
