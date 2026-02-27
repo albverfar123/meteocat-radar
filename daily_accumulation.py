@@ -17,36 +17,38 @@ def calculate_daily():
     if not os.path.exists(DAILY_DIR):
         os.makedirs(DAILY_DIR)
 
-    # 2. Filtrar fitxers d'ahir
-    # Busquem fitxers que comencin amb radar_YYYYMMDD
+    # 2. Filtrar fitxers d'avui (Cerca recursiva en subcarpetes)
     if not os.path.exists(OUTPUT_DIR):
         print(f"❌ La carpeta {OUTPUT_DIR} no existeix.")
         return
 
-    files = [f for f in os.listdir(OUTPUT_DIR)
-             if f.startswith(f"radar_{ieri}") and f.endswith(".nc")]
-    files.sort()
+    all_files_paths = []
+    for root, dirs, filenames in os.walk(OUTPUT_DIR):
+        for filename in filenames:
+            # Busquem fitxers que comencin amb radar_YYYYMMDD i acabin en .nc
+            if filename.startswith(f"radar_{ieri}") and filename.endswith(".nc"):
+                full_path = os.path.join(root, filename)
+                all_files_paths.append(full_path)
+    
+    all_files_paths.sort()
 
-    if not files:
+    if not all_files_paths:
         print(f"❌ No s'han trobat fitxers per al dia {ieri}")
-        # Llistem què hi ha per fer debug si cal
-        print(f"Contingut de {OUTPUT_DIR}: {os.listdir(OUTPUT_DIR)[:5]}...") 
+        # Fem un print per veure què hi ha realment si falla
+        for root, dirs, files in os.walk(OUTPUT_DIR):
+             print(f"Dins de {root} hi ha: {files}")
         return
 
     # 3. Carregar i sumar les dades
+    # 3. Carregar i sumar les dades
     total_precip = None
-    used_files = []
+    used_files = [] # Aquí guardarem només el nom del fitxer per al log final
     
-    # FACTOR DE CONVERSIÓ: 
-    # Si cada imatge és cada 6 minuts, representen 6/60 hores = 0.1 hores.
-    # Si fossin cada 12 minuts, seria 0.2.
     FACTOR_TEMPORAL = 0.1 
 
-    for f in files:
-        file_path = os.path.join(OUTPUT_DIR, f)
+    for file_path in all_files_paths:
         try:
             with xr.open_dataset(file_path) as ds:
-                # .load() és essencial per poder esborrar el fitxer després
                 data = ds['precipitacio'].fillna(0).load()
 
                 if total_precip is None:
@@ -55,10 +57,10 @@ def calculate_daily():
                 else:
                     total_precip += data * FACTOR_TEMPORAL
 
-                used_files.append(f)
+                used_files.append(os.path.basename(file_path)) # Guardem només el nom per al TXT
 
         except Exception as e:
-            print(f"⚠️ Error obrint {f}: {e}")
+            print(f"⚠️ Error obrint {file_path}: {e}")
 
     if total_precip is None:
         print("❌ No s'ha pogut processar cap fitxer correctament.")
@@ -145,6 +147,7 @@ def generate_daily_png(data, lon, lat, date_str):
 
 if __name__ == "__main__":
     calculate_daily()
+
 
 
 
