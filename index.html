@@ -17,11 +17,23 @@
             cursor: pointer; font-weight: bold; font-size: 12px; border-radius: 6px;
         }
         .header-tabs button.active { background: #007bff; color: white; }
+        
+        /* Estil per al botó de l'Aspecte */
+        #btnAspect { border: 1px solid #444; margin-left: 10px; }
+        #btnAspect.active { border-color: #ff00ac; color: #ff00ac; }
+
         #map { position: absolute; top: 60px; bottom: 0; width: 100%; background: #f0f0f0; }
         .control {
             position: absolute; background: white; z-index: 1500; padding: 15px;
             display: flex; flex-direction: column; gap: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
+        
+        /* Nou control per a l'Aspecte */
+        #aspectControl {
+            display: none; /* Amagat per defecte */
+            bottom: 20px; left: 20px; width: 200px; border-radius: 12px;
+        }
+
         .station-label {
             background: rgba(255, 255, 255, 0.7);
             border: 1px solid rgba(0,0,0,0.2);
@@ -32,8 +44,19 @@
             color: #333;
             pointer-events: none !important;
         }
-        @media (min-width: 601px) { .control { top: 80px; right: 20px; width: 260px; border-radius: 12px; } }
-        @media (max-width: 600px) { .control { bottom: 0; width: 100%; border-radius: 20px 20px 0 0; box-sizing: border-box; } }
+
+        /* Estils Llegenda */
+        .legend {
+            padding: 8px; background: white; line-height: 14px; color: #333;
+            border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2); font-size: 10px;
+        }
+        .legend i { width: 12px; height: 12px; float: left; margin-right: 5px; opacity: 0.9; border: 1px solid #ccc; }
+
+        @media (min-width: 601px) { .control:not(#aspectControl) { top: 80px; right: 20px; width: 260px; border-radius: 12px; } }
+        @media (max-width: 600px) { 
+            .control:not(#aspectControl) { bottom: 0; width: 100%; border-radius: 20px 20px 0 0; box-sizing: border-box; } 
+            #aspectControl { bottom: 180px; left: 10px; width: 150px; }
+        }
     </style>
 </head>
 <body>
@@ -43,7 +66,7 @@
     <div class="header-tabs">
         <button id="modeDaily" class="active">DIARI</button>
         <button id="modeWeekly">SETMANAL</button>
-    </div>
+        <button id="btnAspect">ASPECTE</button> </div>
 </div>
 
 <div id="map"></div>
@@ -63,20 +86,86 @@
         <input type="checkbox" id="checkStations" checked> Veure dades estacions (mm)
     </label>
     
-    <input id="opacitySlider" type="range" min="0" max="1" step="0.1" value="0.8" style="width:100%; margin-top:5px;">
+    <div style="font-size: 10px; color: #666;">Opacitat Radar:</div>
+    <input id="opacitySlider" type="range" min="0" max="1" step="0.1" value="0.8" style="width:100%;">
+</div>
+
+<div id="aspectControl" class="control">
+    <div style="font-size: 11px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px;">Control Aspecte</div>
+    <div style="font-size: 10px; color: #666; margin-top: 5px;">Opacitat:</div>
+    <input id="aspectOpacity" type="range" min="0" max="1" step="0.1" value="0.7" style="width:100%;">
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-var map = L.map('map', { zoomControl: false }).setView([41.7, 1.8], 7);
+// Modifiquem el mapa per permetre més zoom (important per les tiles)
+var map = L.map('map', { zoomControl: false, maxZoom: 22 }).setView([41.7, 1.8], 7);
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 
 var overlayRadar = null;
+var aspectLayer = null; // Capa d'aspecte
+var legendControl = null; // Control de llegenda
 var stationsLayer = L.layerGroup().addTo(map);
 var viewMode = 'daily';
 var radarBounds = null;
 
-// 1. Funció per calcular dates
+// --- FUNCIONS ASPECTE ---
+function toggleAspect() {
+    const btn = document.getElementById("btnAspect");
+    const control = document.getElementById("aspectControl");
+
+    if (!aspectLayer) {
+        // ACTIVAR
+        btn.classList.add("active");
+        control.style.display = "flex";
+        
+        aspectLayer = L.tileLayer('https://albverfar123.github.io/test_aspect/tiles_aspect/{z}/{x}/{y}.png', {
+            minZoom: 8,
+            maxNativeZoom: 12,
+            maxZoom: 22,
+            opacity: 0.7,
+            errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+        }).addTo(map);
+        
+        // Portar radar al davant si existeix
+        if(overlayRadar) overlayRadar.bringToFront();
+        
+        // Afegir llegenda
+        addAspectLegend();
+    } else {
+        // DESACTIVAR
+        btn.classList.remove("active");
+        control.style.display = "none";
+        map.removeLayer(aspectLayer);
+        aspectLayer = null;
+        if(legendControl) { map.removeControl(legendControl); legendControl = null; }
+    }
+}
+
+function addAspectLegend() {
+    legendControl = L.control({position: 'bottomright'});
+    legendControl.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'legend');
+        var labels = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+        var colors = ['#ff00ac', '#ff97dd', '#5cc75a', '#9cc75a', '#c7c55a', '#c7a15a', '#c7735a', '#990067'];
+        div.innerHTML = '<strong>Orientació</strong><br>';
+        for (var i = 0; i < labels.length; i++) {
+            div.innerHTML += '<i style="background:' + colors[i] + '"></i> ' + labels[i] + '<br>';
+        }
+        return div;
+    };
+    legendControl.addTo(map);
+}
+
+// Control slider opacitat aspecte
+document.getElementById("aspectOpacity").oninput = function() {
+    if (aspectLayer) aspectLayer.setOpacity(this.value);
+};
+
+document.getElementById("btnAspect").onclick = toggleAspect;
+
+// --- FINAL FUNCIONS ASPECTE ---
+
 function getDates(dateIn) {
     let d = new Date(dateIn);
     const fmt = (date) => date.toISOString().slice(0,10).replace(/-/g, "");
@@ -145,7 +234,6 @@ async function updateView() {
                 loadStations(dates.weeklyStart, dates.weeklyEnd);
             }
 
-            // Actualitzar dies pluja
             try {
                 const res = await fetch(resumPath);
                 if (!res.ok) throw new Error();
@@ -172,6 +260,10 @@ async function loadRadar(path, callback) {
         overlayRadar = L.imageOverlay(path, radarBounds, { 
             opacity: document.getElementById("opacitySlider").value 
         }).addTo(map);
+        
+        // MANTENIR ORDRE: El radar sempre davant de l'aspecte
+        if(aspectLayer) overlayRadar.bringToFront();
+        
         document.getElementById("statusMsg").textContent = "✔ Carregat";
         if(callback) callback(true);
     };
@@ -213,7 +305,6 @@ document.getElementById("opacitySlider").oninput = function() {
     if (overlayRadar) overlayRadar.setOpacity(this.value);
 };
 
-// Inicialització
 let dInit = new Date(); dInit.setDate(dInit.getDate()-1);
 document.getElementById("datePicker").value = dInit.toISOString().slice(0,10);
 initMap();
