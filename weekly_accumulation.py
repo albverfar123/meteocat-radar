@@ -153,7 +153,7 @@ def save_outputs(start_date, end_date, resum, csv_data, data_array, lon, lat):
         ax.set_axis_off()
         fig.add_axes(ax)
         
-        norm = colors.LogNorm(vmin=0.1, vmax=500) # Més vMax per a setmana
+        norm = colors.LogNorm(vmin=0.1, vmax=300) # Més vMax per a setmana
         cmap = plt.get_cmap('turbo').copy()
         cmap.set_under(alpha=0)
         
