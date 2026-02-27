@@ -3,14 +3,13 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Visor Acumulats Meteocat</title>
+    <title>Visor Acumulats Radar</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
         html, body { height: 100%; margin: 0; overflow: hidden; font-family: -apple-system, system-ui, sans-serif; }
         
-        /* HEADER */
         .header {
             position: absolute; top: 0; left: 0; right: 0; height: 50px;
             background: #1a1a1a; color: white; display: flex; align-items: center;
@@ -18,7 +17,6 @@
         }
         .header-title { font-weight: bold; font-size: 16px; letter-spacing: 0.5px; }
 
-        /* MAP */
         #map { position: absolute; top: 50px; bottom: 0; width: 100%; background: #f0f0f0; }
 
         /* CONTROLS */
@@ -29,6 +27,14 @@
             box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
         }
 
+        /* MODES TABS */
+        .mode-selector { display: flex; width: 100%; gap: 5px; margin-bottom: 5px; }
+        .mode-selector button { 
+            flex: 1; padding: 8px; border: 1px solid #ccc; background: #eee; 
+            cursor: pointer; font-weight: bold; border-radius: 6px; font-size: 12px;
+        }
+        .mode-selector button.active { background: #007bff; color: white; border-color: #0056b3; }
+
         #toggleMenu {
             position: absolute; background: white; border: 1px solid #ccc;
             border-radius: 50%; width: 38px; height: 38px; cursor: pointer;
@@ -38,7 +44,7 @@
         }
 
         #btnLocate {
-            width: 100%; padding: 8px; background: #007bff; color: white;
+            width: 100%; padding: 8px; background: #28a745; color: white;
             border: none; border-radius: 6px; font-weight: bold; cursor: pointer;
             font-size: 12px; margin-top: 5px;
         }
@@ -50,22 +56,21 @@
             font-size: 12px; font-weight: bold;
         }
 
-        .status { font-size: 11px; color: #444; font-weight: bold; margin-top: 2px; }
+        .status { font-size: 11px; color: #444; font-weight: bold; margin-top: 2px; text-align: center; }
+        .week-info { font-size: 11px; color: #007bff; font-weight: bold; margin-bottom: 5px; display: none; }
 
         .legend-box {
             background: rgba(255, 255, 255, 0.9); border: 1px solid #ccc;
             padding: 8px 12px; border-radius: 8px; z-index: 1400;
         }
 
-        /* ESCALA DE COLORS DIÀRIA */
-        .colorbar-daily { 
+        .colorbar { 
             background: linear-gradient(to right, #00008F, #0000FF, #007FFF, #00FFFF, #7FFF7F, #FFFF00, #FF7F00, #FF0000, #7F0000); 
             height:15px; width:100%; border:1px solid #777; margin-top:5px; 
         }
 
-        /* RESPONSIVE */
         @media (min-width: 601px) {
-            .control { top: 70px; right: 20px; width: 260px; border-radius: 12px; padding: 15px; }
+            .control { top: 70px; right: 20px; width: 280px; border-radius: 12px; padding: 15px; }
             .control.minimized { transform: translateX(350px); opacity: 0; }
             #toggleMenu { top: 60px; right: 20px; } 
             .legend-box { position: absolute; bottom: 30px; right: 20px; width: 280px; }
@@ -75,10 +80,10 @@
             .control { bottom: 0; left: 0; right: 0; width: 100%; border-radius: 20px 20px 0 0; padding: 15px 20px 25px 20px; box-sizing: border-box; }
             .control.minimized { transform: translateY(100%); }
             #toggleMenu { bottom: 15px; right: 15px; }
-            #toggleMenu.on-top { bottom: 210px; } 
+            #toggleMenu.on-top { bottom: 250px; } 
             .legend-box { 
                 position: fixed !important; width: 260px !important; left: 50% !important; 
-                transform: translateX(-50%) !important; bottom: 175px !important; 
+                transform: translateX(-50%) !important; bottom: 215px !important; 
                 font-size: 10px !important;
             }
             .legend-box.lowered { bottom: 25px !important; }
@@ -88,17 +93,23 @@
 <body>
 
 <div class="header">
-    <div class="header-title">Acumulat Diari de Precipitació</div>
+    <div class="header-title" id="titleHeader">Acumulat Diari de Precipitació</div>
 </div>
 
 <div id="map"></div>
 
 <div class="control" id="mainControl">
-    <div id="dailyControls" style="width: 100%;">
+    <div class="mode-selector">
+        <button id="modeDaily" class="active">DIARI</button>
+        <button id="modeWeekly">SETMANAL</button>
+    </div>
+
+    <div id="dateSelector" style="width: 100%;">
+        <div id="weekRangeDisplay" class="week-info">Setmana: -- al --</div>
         <input id="datePicker" type="date" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; margin-bottom: 8px; box-sizing: border-box;">
         <div class="nav-arrows">
-            <button id="prevDay">◀ Dia Anterior</button>
-            <button id="nextDay">Dia Següent ▶</button>
+            <button id="prevBtn">◀ Anterior</button>
+            <button id="nextBtn">Següent ▶</button>
         </div>
     </div>
 
@@ -111,15 +122,11 @@
 
     <div style="width: 100%; border-top: 1px solid #eee; padding-top: 10px; margin-top: 5px;">
         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; font-weight: bold;">
-            <input type="checkbox" id="checkCatalunya"> Capa Catalunya (PNG)
+            <input type="checkbox" id="checkCatalunya"> Mapa Catalunya (Rius/Comarques)
         </label>
-        <div id="boxOpacitatCat" style="display:none; align-items:center; gap:10px; margin-top:5px;">
-            <span style="font-size:11px">Opacitat Capa:</span>
-            <input id="opacityCatalunya" type="range" min="0" max="1" step="0.05" value="0.7" style="flex-grow:1;">
-        </div>
     </div>
 
-    <button id="btnLocate">📍 La meva ubicació</button>
+    <button id="btnLocate">📍 Ubicació Actual</button>
 </div>
 
 <button id="toggleMenu">✖</button>
@@ -127,7 +134,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-let imageBounds = [[40.0, 0.0], [43.5, 3.8]]; // Provisional fins llegir bounds.json
+let imageBounds = [[40.0, 0.0], [43.5, 3.8]]; 
 const boundsCatalunya = [[40.4795, 0.1472], [43.0236, 3.4889]];
 const pathCatalunya = 'mapa_aspect_mercator.png'; 
 
@@ -138,90 +145,69 @@ L.control.zoom({ position: 'topright' }).addTo(map);
 var overlay = null;
 let overlayCatalunya = null;
 var userMarker = null;
+let viewMode = 'daily'; // 'daily' o 'weekly'
 
-// LLEGENDA
+// --- LLEGENDA DINÀMICA ---
 var legend = L.control({ position: "bottomright" });
 legend.onAdd = function() {
-    let div = L.DomUtil.create("div", "legend-box");
-    div.innerHTML = `
-        <div style="width: 100%;">
-            <b>Acumulat Diari (mm) <small>(log)</small></b><br>
-            <div class="colorbar-daily"></div>
-            <div style="position: relative; width: 100%; height: 6px;">
-                <span style="position: absolute; left: 0%; border-left: 1px solid #444; height: 100%;"></span>
-                <span style="position: absolute; left: 30.3%; border-left: 1px solid #444; height: 100%;"></span>
-                <span style="position: absolute; left: 51.5%; border-left: 1px solid #444; height: 100%;"></span>
-                <span style="position: absolute; left: 69.7%; border-left: 1px solid #444; height: 100%;"></span>
-                <span style="position: absolute; left: 90.9%; border-left: 1px solid #444; height: 100%;"></span>
-                <span style="position: absolute; left: 100%; border-left: 1px solid #444; height: 100%; margin-left:-1px;"></span>
-            </div>
-            <div style="position: relative; width: 100%; height: 15px; font-size: 10px; font-family: sans-serif; margin-top: 2px;">
-                <span style="position: absolute; left: 0%; transform: translateX(-50%);">0.1</span>
-                <span style="position: absolute; left: 30.3%; transform: translateX(-50%);">1</span>
-                <span style="position: absolute; left: 51.5%; transform: translateX(-50%);">5</span>
-                <span style="position: absolute; left: 69.7%; transform: translateX(-50%);">20</span>
-                <span style="position: absolute; left: 90.9%; transform: translateX(-50%);">100</span>
-                <span style="position: absolute; left: 100%; transform: translateX(-100%);">200</span>
-            </div>
+    this._div = L.DomUtil.create("div", "legend-box");
+    this.update();
+    return this._div;
+};
+legend.update = function() {
+    let title = viewMode === 'daily' ? "Acumulat Diari (mm)" : "Acumulat Setmanal (mm)";
+    let vMax = viewMode === 'daily' ? "200" : "300";
+    let ticks = viewMode === 'daily' 
+        ? `<span style="left:0%">0.1</span><span style="left:30%">1</span><span style="left:51%">5</span><span style="left:70%">20</span><span style="left:91%">100</span><span style="left:100%;transform:translateX(-100%)">200</span>`
+        : `<span style="left:0%">0.1</span><span style="left:28%">1</span><span style="left:57%">10</span><span style="left:78%">50</span><span style="left:90%">100</span><span style="left:100%;transform:translateX(-100%)">300</span>`;
+
+    this._div.innerHTML = `
+        <b>${title}</b><br>
+        <div class="colorbar"></div>
+        <div style="position: relative; width: 100%; height: 15px; font-size: 10px; margin-top: 2px;">
+            ${ticks}
         </div>`;
-    return div;
 };
 legend.addTo(map);
 
-// MENU TOGGLE
-const mainControl = document.getElementById("mainControl");
-const toggleBtn = document.getElementById("toggleMenu");
-const legendBox = document.querySelector(".legend-box");
-
-toggleBtn.onclick = () => {
-    const isMinimized = mainControl.classList.toggle("minimized");
-    toggleBtn.innerHTML = isMinimized ? "☰" : "✖";
-    if (window.innerWidth <= 600) {
-        toggleBtn.classList.toggle("on-top", !isMinimized);
-        if (legendBox) legendBox.classList.toggle("lowered", isMinimized);
-    }
-};
-
-// CAPA CATALUNYA
-const checkCat = document.getElementById("checkCatalunya");
-const sliderCat = document.getElementById("opacityCatalunya");
-const boxOpacitatCat = document.getElementById("boxOpacitatCat");
-
-checkCat.onchange = function() {
-    if (this.checked) {
-        overlayCatalunya = L.imageOverlay(pathCatalunya, boundsCatalunya, { 
-            opacity: sliderCat.value, zIndex: 400 
-        }).addTo(map);
-        boxOpacitatCat.style.display = "flex";
-    } else {
-        if (overlayCatalunya) { map.removeLayer(overlayCatalunya); overlayCatalunya = null; }
-        boxOpacitatCat.style.display = "none";
-    }
-};
-sliderCat.oninput = (e) => { if (overlayCatalunya) overlayCatalunya.setOpacity(e.target.value); };
-
-// GPS
-document.getElementById("btnLocate").onclick = () => map.locate({setView: true, maxZoom: 10});
-map.on('locationfound', (e) => {
-    if (userMarker) map.removeLayer(userMarker);
-    userMarker = L.circleMarker(e.latlng, { radius: 8, color: 'white', fillColor: '#007bff', fillOpacity: 1, weight: 2 }).addTo(map);
-});
-
-// CARREGAR IMATGE ACUMULAT
-async function fetchBoundsAndLoad() {
-    try {
-        const response = await fetch('bounds.json');
-        const data = await response.json();
-        imageBounds = [[data.lat_min, data.lon_min], [data.lat_max, data.lon_max]];
-    } catch (e) { console.log("No s'ha pogut llegir bounds.json, usant default"); }
-    loadDailyImage();
+// --- UTILITATS DE DATA ---
+function getWeekRange(date) {
+    let d = new Date(date);
+    let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6:1);
+    let monday = new Date(d.setDate(diff));
+    let sunday = new Date(monday); sunday.setDate(monday.getDate() + 6);
+    
+    const fmt = (date) => date.toISOString().slice(0,10).replace(/-/g, "");
+    const fmtHuman = (date) => date.toLocaleDateString('ca-ES', {day:'2-digit', month:'2-digit'});
+    
+    return {
+        start: fmt(monday),
+        end: fmt(sunday),
+        label: `${fmtHuman(monday)} al ${fmtHuman(sunday)}`
+    };
 }
 
-function loadDailyImage() {
-    const dateVal = document.getElementById("datePicker").value.replace(/-/g, "");
-    const path = `acumulats_diaris/acumulat_${dateVal}.png`;
+// --- LOGICA DE CARREGA ---
+async function updateView() {
     const statusMsg = document.getElementById("statusMsg");
+    const datePicker = document.getElementById("datePicker");
+    const weekRangeDisplay = document.getElementById("weekRangeDisplay");
+    const titleHeader = document.getElementById("titleHeader");
     
+    let path = "";
+    if (viewMode === 'daily') {
+        const dateVal = datePicker.value.replace(/-/g, "");
+        path = `acumulats_diaris/acumulat_${dateVal}.png`;
+        weekRangeDisplay.style.display = "none";
+        titleHeader.textContent = "Acumulat Diari de Precipitació";
+    } else {
+        const range = getWeekRange(datePicker.value);
+        path = `acumulats_setmanals/setmanal_${range.start}_${range.end}.png`;
+        weekRangeDisplay.textContent = `Setmana: ${range.label}`;
+        weekRangeDisplay.style.display = "block";
+        titleHeader.textContent = "Acumulat Setmanal de Precipitació";
+    }
+
     statusMsg.textContent = "Buscant...";
     statusMsg.style.color = "#444";
 
@@ -232,36 +218,92 @@ function loadDailyImage() {
             opacity: document.getElementById("opacitySlider").value, zIndex: 500 
         }).addTo(map);
         statusMsg.style.color = "green";
-        statusMsg.textContent = "✔ Acumulat carregat";
+        statusMsg.textContent = "✔ Carregat correctament";
     };
     img.onerror = () => {
         statusMsg.style.color = "red";
-        statusMsg.textContent = "✖ Sense dades per aquest dia";
+        statusMsg.textContent = "✖ Sense dades";
         if (overlay) map.removeLayer(overlay);
         overlay = null;
     };
     img.src = path;
+    legend.update();
 }
 
-// CONTROL DE DATES
-const datePicker = document.getElementById("datePicker");
-let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-datePicker.value = yesterday.toISOString().slice(0,10);
-datePicker.onchange = loadDailyImage;
-
-document.getElementById("prevDay").onclick = () => { 
-    let d = new Date(datePicker.value); d.setDate(d.getDate()-1); 
-    datePicker.value=d.toISOString().slice(0,10); loadDailyImage(); 
-};
-document.getElementById("nextDay").onclick = () => { 
-    let d = new Date(datePicker.value); d.setDate(d.getDate()+1); 
-    datePicker.value=d.toISOString().slice(0,10); loadDailyImage(); 
+// --- EVENTS ---
+document.getElementById("modeDaily").onclick = function() {
+    viewMode = 'daily';
+    this.classList.add("active");
+    document.getElementById("modeWeekly").classList.remove("active");
+    updateView();
 };
 
+document.getElementById("modeWeekly").onclick = function() {
+    viewMode = 'weekly';
+    this.classList.add("active");
+    document.getElementById("modeDaily").classList.remove("active");
+    updateView();
+};
+
+document.getElementById("prevBtn").onclick = () => {
+    let d = new Date(datePicker.value);
+    d.setDate(d.getDate() - (viewMode === 'daily' ? 1 : 7));
+    datePicker.value = d.toISOString().slice(0,10);
+    updateView();
+};
+
+document.getElementById("nextBtn").onclick = () => {
+    let d = new Date(datePicker.value);
+    d.setDate(d.getDate() + (viewMode === 'daily' ? 1 : 7));
+    datePicker.value = d.toISOString().slice(0,10);
+    updateView();
+};
+
+document.getElementById("datePicker").onchange = updateView;
 document.getElementById("opacitySlider").oninput = (e) => { if (overlay) overlay.setOpacity(e.target.value); };
 
-// Inici
-fetchBoundsAndLoad();
+// Toggle Menu
+const toggleBtn = document.getElementById("toggleMenu");
+const mainControl = document.getElementById("mainControl");
+toggleBtn.onclick = () => {
+    const isMinimized = mainControl.classList.toggle("minimized");
+    toggleBtn.innerHTML = isMinimized ? "☰" : "✖";
+    if (window.innerWidth <= 600) {
+        toggleBtn.classList.toggle("on-top", !isMinimized);
+        document.querySelector(".legend-box").classList.toggle("lowered", isMinimized);
+    }
+};
+
+// Catalunya Layer
+document.getElementById("checkCatalunya").onchange = function() {
+    if (this.checked) {
+        overlayCatalunya = L.imageOverlay(pathCatalunya, boundsCatalunya, { opacity: 0.6, zIndex: 400 }).addTo(map);
+    } else if (overlayCatalunya) {
+        map.removeLayer(overlayCatalunya);
+    }
+};
+
+// GPS
+document.getElementById("btnLocate").onclick = () => map.locate({setView: true, maxZoom: 10});
+map.on('locationfound', (e) => {
+    if (userMarker) map.removeLayer(userMarker);
+    userMarker = L.circleMarker(e.latlng, { radius: 7, color: 'white', fillColor: '#28a745', fillOpacity: 1, weight: 2 }).addTo(map);
+});
+
+// Inicialització
+async function init() {
+    try {
+        const response = await fetch('bounds.json');
+        const data = await response.json();
+        imageBounds = [[data.lat_min, data.lon_min], [data.lat_max, data.lon_max]];
+    } catch (e) { console.error("Usant bounds per defecte"); }
+    
+    let yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    document.getElementById("datePicker").value = yesterday.toISOString().slice(0,10);
+    updateView();
+}
+
+init();
 </script>
 </body>
 </html>
