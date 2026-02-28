@@ -152,7 +152,7 @@ def save_outputs(start_date, end_date, resum, csv_data, stats_estacions, data_ar
         "features": []
     }
     for codi, d in stats_estacions.items():
-        if d['total'] >= 0.1:  # Només incloem estacions amb pluja mínima per no saturar
+        if d['total'] >= 0:  # Només incloem estacions amb pluja mínima per no saturar
             feature = {
                 "type": "Feature",
                 "geometry": {"type": "Point", "coordinates": [d['lon'], d['lat']]},
