@@ -32,26 +32,24 @@ jobs:
             mkdir -p dades_radar  # <--- Afegeix això per assegurar la carpeta
             python daily_accumulation.py
 
-      # 3. COMMIT I PUSH DELS RESULTATS
+     # 3. COMMIT I PUSH DELS RESULTATS
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Afegim només els fitxers que ens interessen
+          # Afegim tots els formats generats a la carpeta d'acumulats
           git add acumulats_diaris/*.nc
           git add acumulats_diaris/*.png
           git add acumulats_diaris/*.txt
+          git add acumulats_diaris/*.csv
+          git add acumulats_diaris/*.json
           git add bounds.json
           
-          # Fem el commit només si hi ha canvis reals
+          # Fem el commit només si hi ha canvis reals per evitar errors de "working tree clean"
           if git diff --staged --quiet; then
             echo "No hi ha canvis per pujar."
           else
-            git commit -m "📊 Prova acumulat d'avui: $(date +'%Y-%m-%d')"
+            git commit -m "📊 Acumulat diari: Radar + Estacions ($(date +'%Y-%m-%d'))"
             git push
           fi
-          git add -A
-          
-          git commit -m "Acumulat diari generat i neteja radar" || exit 0
-          git push
