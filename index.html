@@ -36,13 +36,14 @@
         }
 
         .station-label {
-            background: rgba(255, 255, 255, 0.7);
-            border: 1px solid rgba(0,0,0,0.2);
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid rgba(0,0,0,0.3);
             border-radius: 3px;
             text-align: center;
             font-size: 10px;
             font-weight: bold;
-            color: #333;
+            color: #000;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
             pointer-events: none !important;
         }
 
@@ -52,7 +53,6 @@
         }
         .legend i { width: 12px; height: 12px; float: left; margin-right: 5px; opacity: 0.9; border: 1px solid #ccc; }
 
-        /* Estils Nova Llegenda Radar */
         .legend-box {
             background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.2);
             width: 220px; min-height: 45px;
@@ -79,37 +79,15 @@
             #btnToggleMenu { top: 65px; right: 10px; }
         }
         
-        /* Botó GPS a dalt a l'esquerra */
         #btnGPS {
-            position: absolute; 
-            top: 70px; 
-            left: 10px; 
-            z-index: 1600;
-            background: white; 
-            border: 1px solid #ccc; 
-            width: 34px; 
-            height: 34px; 
-            border-radius: 4px; /* Més quadrat, estil Leaflet */
-            box-shadow: 0 1px 5px rgba(0,0,0,0.4); 
-            cursor: pointer;
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 18px;
+            position: absolute; top: 70px; left: 10px; z-index: 1600;
+            background: white; border: 1px solid #ccc; width: 34px; height: 34px; 
+            border-radius: 4px; box-shadow: 0 1px 5px rgba(0,0,0,0.4); 
+            cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px;
         }
         
-        /* Punt blau d'ubicació */
-        .user-location-dot {
-            background-color: #007bff;
-            border: 2px solid white;
-            border-radius: 50%;
-        }
-        
-        /* Ajust de l'escala perquè no trepitgi el botó */
-        .leaflet-control-scale {
-            margin-left: 10px !important;
-            margin-top: 50px !important; /* Baixa l'escala per deixar lloc al botó */
-        }
+        .user-location-dot { background-color: #007bff; border: 2px solid white; border-radius: 50%; }
+        .leaflet-control-scale { margin-left: 10px !important; margin-top: 50px !important; }
         
     </style>
 </head>
@@ -158,11 +136,7 @@
 var map = L.map('map', { zoomControl: false, maxZoom: 22 }).setView([41.7, 1.8], 7);
 L.tileLayer('https://{s}.tile.osm.org/{z}/{x}/{y}.png').addTo(map);
 
-L.control.scale({
-    metric: true,
-    imperial: false,
-    position: 'topleft' // Ara a dalt a l'esquerra
-}).addTo(map);
+L.control.scale({ metric: true, imperial: false, position: 'topleft' }).addTo(map);
     
 var overlayRadar = null;
 var aspectLayer = null; 
@@ -171,32 +145,27 @@ var stationsLayer = L.layerGroup().addTo(map);
 var viewMode = 'daily';
 var radarBounds = null;
 
-// --- LLEGENDA DINÀMICA ---
+// --- LLEGENDA ---
 var legend = L.control({ position: "bottomright" });
 legend.onAdd = function() {
     this._div = L.DomUtil.create("div", "legend-box");
     this.update();
     return this._div;
 };
-
 legend.update = function() {
     let title = viewMode === 'daily' ? "Acumulat Diari (mm)" : "Acumulat Setmanal (mm)";
-    let marks = "";
-    let ticks = "";
-
+    let marks = "", ticks = "";
     if (viewMode === 'daily') {
-        const d = 3.301;
         const pts = [0.1, 1, 5, 20, 100, 200];
         pts.forEach(v => {
-            let pos = ((Math.log10(v) + 1) / d) * 100;
+            let pos = ((Math.log10(v) + 1) / 3.301) * 100;
             marks += `<span style="left:${pos}%"></span>`;
             ticks += `<span style="left:${pos}%">${v}</span>`;
         });
     } else {
-        const d = 3.477;
         const pts = [0.1, 1, 10, 50, 100, 300];
         pts.forEach(v => {
-            let pos = ((Math.log10(v) + 1) / d) * 100;
+            let pos = ((Math.log10(v) + 1) / 3.477) * 100;
             marks += `<span style="left:${pos}%"></span>`;
             ticks += `<span style="left:${pos}%">${v}</span>`;
         });
@@ -207,54 +176,7 @@ legend.update = function() {
 };
 legend.addTo(map);
 
-// --- CONTROL DE MENÚ ---
-document.getElementById("btnToggleMenu").onclick = function() {
-    const menu = document.getElementById("mainControl");
-    menu.classList.toggle("minimized");
-    this.textContent = menu.classList.contains("minimized") ? "Obrir" : "Amagar";
-};
-
-// --- FUNCIONS ASPECTE ---
-function toggleAspect() {
-    const btn = document.getElementById("btnAspect");
-    const control = document.getElementById("aspectControl");
-    if (!aspectLayer) {
-        btn.classList.add("active");
-        control.style.display = "flex";
-        aspectLayer = L.tileLayer('https://albverfar123.github.io/test_aspect/tiles_aspect/{z}/{x}/{y}.png', {
-            minZoom: 8, maxNativeZoom: 12, maxZoom: 22, opacity: 0.7,
-            errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-        }).addTo(map);
-        if(overlayRadar) overlayRadar.bringToFront();
-        addAspectLegend();
-    } else {
-        btn.classList.remove("active");
-        control.style.display = "none";
-        map.removeLayer(aspectLayer);
-        aspectLayer = null;
-        if(legendControl) { map.removeControl(legendControl); legendControl = null; }
-    }
-}
-
-function addAspectLegend() {
-    legendControl = L.control({position: 'bottomleft'});
-    legendControl.onAdd = function (map) {
-        var div = L.DomUtil.create('div', 'legend');
-        var labels = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
-        var colors = ['#ff00ac', '#ff97dd', '#5cc75a', '#9cc75a', '#c7c55a', '#c7a15a', '#c7735a', '#990067'];
-        div.innerHTML = '<strong>Aspecte</strong><br>';
-        for (var i = 0; i < labels.length; i++) {
-            div.innerHTML += '<i style="background:' + colors[i] + '"></i> ' + labels[i] + '<br>';
-        }
-        return div;
-    };
-    legendControl.addTo(map);
-}
-
-document.getElementById("aspectOpacity").oninput = function() { if (aspectLayer) aspectLayer.setOpacity(this.value); };
-document.getElementById("btnAspect").onclick = toggleAspect;
-
-// --- DATES I UPDATE ---
+// --- AUXILIARS ---
 function getDates(dateIn) {
     let d = new Date(dateIn);
     const fmt = (date) => date.toISOString().slice(0,10).replace(/-/g, "");
@@ -263,13 +185,15 @@ function getDates(dateIn) {
     let monday = new Date(d.getTime()); monday.setDate(diff);
     let sunday = new Date(monday.getTime()); sunday.setDate(monday.getDate() + 6);
     return {
-        daily: fmt(new Date(dateIn)), weeklyStart: fmt(monday), weeklyEnd: fmt(sunday),
+        daily: fmt(new Date(dateIn)), 
+        weeklyStart: fmt(monday), weeklyEnd: fmt(sunday),
         trialStart: fmt(new Date(d.getTime() - 6*86400000)), trialEnd: fmt(new Date(dateIn)),
         uiStart: fmtUI(new Date(d.getTime() - 6*86400000)), uiEnd: fmtUI(new Date(dateIn)),
         uiStartNat: fmtUI(monday), uiEndNat: fmtUI(sunday)
     };
 }
 
+// --- CORE FUNCTIONS ---
 async function initMap() {
     try {
         const response = await fetch('bounds.json');
@@ -283,24 +207,25 @@ async function updateView() {
     if (!radarBounds) return;
     legend.update();
     const dates = getDates(document.getElementById("datePicker").value);
-    const status = document.getElementById("statusMsg");
     const weekDisplay = document.getElementById("weekRangeDisplay");
+    
     if (overlayRadar) map.removeLayer(overlayRadar);
     stationsLayer.clearLayers();
 
     if (viewMode === 'daily') {
         weekDisplay.style.display = "none";
         loadRadar(`acumulats_diaris/acumulat_${dates.daily}.png`);
+        loadStations(`acumulats_diaris/estacions_${dates.daily}.json`);
     } else {
         weekDisplay.style.display = "block";
         loadRadar(`acumulats_setmanals/setmanal_${dates.weeklyStart}_${dates.weeklyEnd}.png`, async (success) => {
             if (!success) {
                 weekDisplay.textContent = `Setmana del ${dates.uiStart} al ${dates.uiEnd}`;
                 loadRadar(`acumulats_setmanals/setmanal_${dates.trialStart}_${dates.trialEnd}.png`);
-                loadStations(dates.trialStart, dates.trialEnd);
+                loadStations(`acumulats_setmanals/estacions_${dates.trialStart}_${dates.trialEnd}.json`);
             } else {
                 weekDisplay.textContent = `Setmana del ${dates.uiStartNat} al ${dates.uiEndNat}`;
-                loadStations(dates.weeklyStart, dates.weeklyEnd);
+                loadStations(`acumulats_setmanals/estacions_${dates.weeklyStart}_${dates.weeklyEnd}.json`);
             }
         });
     }
@@ -314,52 +239,92 @@ async function loadRadar(path, callback) {
         document.getElementById("statusMsg").textContent = "✔ Carregat";
         if(callback) callback(true);
     };
-    img.onerror = () => { document.getElementById("statusMsg").textContent = "✖ No trobat"; if(callback) callback(false); };
+    img.onerror = () => { 
+        document.getElementById("statusMsg").textContent = "✖ No trobat"; 
+        if(callback) callback(false); 
+    };
     img.src = path;
 }
 
-async function loadStations(start, end) {
+async function loadStations(path) {
     if (!document.getElementById("checkStations").checked) return;
     try {
-        const res = await fetch(`acumulats_setmanals/estacions_${start}_${end}.json`);
+        const res = await fetch(path);
+        if (!res.ok) return;
         const data = await res.json();
         L.geoJSON(data, {
             pointToLayer: (feature, latlng) => L.marker(latlng, {
-                icon: L.divIcon({ className: 'station-label', html: feature.properties.pluja, iconSize: [25, 15] })
+                icon: L.divIcon({ 
+                    className: 'station-label', 
+                    html: feature.properties.pluja, 
+                    iconSize: [25, 15] 
+                })
             }).bindTooltip(`${feature.properties.nom}: ${feature.properties.pluja} mm`)
         }).addTo(stationsLayer);
-    } catch (e) {}
+    } catch (e) { console.log("Error carregant estacions:", path); }
 }
+
+// --- EVENTS ---
+document.getElementById("btnToggleMenu").onclick = function() {
+    const menu = document.getElementById("mainControl");
+    menu.classList.toggle("minimized");
+    this.textContent = menu.classList.contains("minimized") ? "Obrir" : "Amagar";
+};
 
 document.getElementById("modeDaily").onclick = function() { viewMode='daily'; this.classList.add('active'); document.getElementById("modeWeekly").classList.remove('active'); updateView(); };
 document.getElementById("modeWeekly").onclick = function() { viewMode='weekly'; this.classList.add('active'); document.getElementById("modeDaily").classList.remove('active'); updateView(); };
 document.getElementById("datePicker").onchange = updateView;
 document.getElementById("checkStations").onchange = updateView;
-document.getElementById("prevBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()-1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
-document.getElementById("nextBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()+1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
 document.getElementById("opacitySlider").oninput = function() { if (overlayRadar) overlayRadar.setOpacity(this.value); };
 
-let dInit = new Date(); dInit.setDate(dInit.getDate()-1);
-document.getElementById("datePicker").value = dInit.toISOString().slice(0,10);
+document.getElementById("prevBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()-1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
+document.getElementById("nextBtn").onclick = () => { let d = new Date(datePicker.value); d.setDate(d.getDate()+1); datePicker.value=d.toISOString().slice(0,10); updateView(); };
 
-//  CODI DEL GPS ---
+// --- GPS ---
 var userMarker = null;
-document.getElementById("btnGPS").onclick = function() {
-    map.locate({setView: true, maxZoom: 16});
-};
-
-map.on('locationfound', function(e) {
+document.getElementById("btnGPS").onclick = () => map.locate({setView: true, maxZoom: 16});
+map.on('locationfound', (e) => {
     if (userMarker) map.removeLayer(userMarker);
-    userMarker = L.circleMarker(e.latlng, {
-        radius: 8, className: 'user-location-dot', fillColor: '#007bff', fillOpacity: 1, color: 'white', weight: 2
-    }).addTo(map);
+    userMarker = L.circleMarker(e.latlng, { radius: 8, className: 'user-location-dot', fillColor: '#007bff', fillOpacity: 1, color: 'white', weight: 2 }).addTo(map);
     L.circle(e.latlng, e.accuracy, { color: '#007bff', fillOpacity: 0.1, weight: 1 }).addTo(map);
 });
 
-map.on('locationerror', function() {
-    alert("No s'ha pogut accedir a la ubicació.");
-});
-    
+// --- ORIENTACIÓ ---
+function toggleAspect() {
+    const btn = document.getElementById("btnAspect");
+    const control = document.getElementById("aspectControl");
+    if (!aspectLayer) {
+        btn.classList.add("active");
+        control.style.display = "flex";
+        aspectLayer = L.tileLayer('https://albverfar123.github.io/meteocat-radar/tiles_aspect/{z}/{x}/{y}.png', {
+            minZoom: 8, maxNativeZoom: 12, maxZoom: 22, opacity: 0.7
+        }).addTo(map);
+        if(overlayRadar) overlayRadar.bringToFront();
+        addAspectLegend();
+    } else {
+        btn.classList.remove("active"); control.style.display = "none";
+        map.removeLayer(aspectLayer); aspectLayer = null;
+        if(legendControl) { map.removeControl(legendControl); legendControl = null; }
+    }
+}
+function addAspectLegend() {
+    legendControl = L.control({position: 'bottomleft'});
+    legendControl.onAdd = function () {
+        var div = L.DomUtil.create('div', 'legend');
+        var labels = ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
+        var colors = ['#ff00ac', '#ff97dd', '#5cc75a', '#9cc75a', '#c7c55a', '#c7a15a', '#c7735a', '#990067'];
+        div.innerHTML = '<strong>Aspecte</strong><br>';
+        for (var i = 0; i < labels.length; i++) div.innerHTML += '<i style="background:' + colors[i] + '"></i> ' + labels[i] + '<br>';
+        return div;
+    };
+    legendControl.addTo(map);
+}
+document.getElementById("btnAspect").onclick = toggleAspect;
+document.getElementById("aspectOpacity").oninput = function() { if (aspectLayer) aspectLayer.setOpacity(this.value); };
+
+// --- INICIAR ---
+let dInit = new Date(); dInit.setDate(dInit.getDate()-1);
+document.getElementById("datePicker").value = dInit.toISOString().slice(0,10);
 initMap();
 </script>
 </body>
