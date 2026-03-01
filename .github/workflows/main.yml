@@ -23,9 +23,6 @@ jobs:
       - name: Executar script de descàrrega
         run: python radar_to_nc.py
 
-      # En lloc de fer Push, pugem el fitxer .nc a Artifacts
-      - name: Executar script de descàrrega
-        run: python radar_to_nc.py
       - name: Commit i Push del fitxer radar
         run: |
           git config --global user.name "github-actions[bot]"
