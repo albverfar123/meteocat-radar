@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-02-23 a 2026-03-01
+--------------------------------------------------
+20260223: ANTICICLÓ  -> Màxim: Illa de Buda (0.1 mm) [AVÍS: Fitxer NC no trobat]
+20260224: ANTICICLÓ  -> Màxim: Illa de Buda (0.3 mm) [AVÍS: Fitxer NC no trobat]
+20260225: ANTICICLÓ  -> Màxim: el Vendrell (0.2 mm)
+20260226: ANTICICLÓ  -> Màxim: Ulldecona - els Valentins (0.2 mm)
+20260227: ANTICICLÓ  -> Màxim: Vilafranca del Penedès - la Granada (0.3 mm)
+20260228: PLUJA      -> Vàlid: Nulles (6.2 mm)
+20260301: PLUJA      -> Vàlid: Cantonigròs (2.2 mm)
