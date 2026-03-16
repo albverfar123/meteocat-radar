@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-03-09 a 2026-03-15
+--------------------------------------------------
+20260309: PLUJA      -> Vàlid: Anglès (26.4 mm)
+20260310: PLUJA      -> Vàlid: Ulldemolins (6.4 mm)
+20260311: PLUJA      -> Vàlid: Certascan (2.400 m) (6.6 mm)
+20260312: ANTICICLÓ  -> Màxim: Lac Redon (2.247 m) (0.4 mm)
+20260313: ANTICICLÓ  -> Màxim: Espot (2.519 m) (0.3 mm)
+20260314: PLUJA      -> Vàlid: Santa Coloma de Farners (38.8 mm)
+20260315: PLUJA      -> Vàlid: Bonabé (1.693 m) (19.1 mm)
