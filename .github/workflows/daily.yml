@@ -32,11 +32,14 @@ jobs:
             mkdir -p dades_radar  # <--- Afegeix això per assegurar la carpeta
             python daily_accumulation.py
 
-     # 3. COMMIT I PUSH DELS RESULTATS
+      # 3. COMMIT I PUSH DELS RESULTATS I ELIMINACIONS
       - name: Commit and Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Enregistrem les eliminacions de la carpeta de radar
+          git add -A dades_radar/
           
           # Afegim tots els formats generats a la carpeta d'acumulats
           git add acumulats_diaris/*.nc
