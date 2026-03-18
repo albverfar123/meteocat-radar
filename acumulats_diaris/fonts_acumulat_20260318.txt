@@ -1,5 +1,5 @@
 Resum de l'acumulat del dia 20260318:
-Total fitxers processats: 109
+Total fitxers processats: 110
 
 radar_20260318_000007.nc
 radar_20260318_000607.nc
@@ -110,3 +110,4 @@ radar_20260318_103007.nc
 radar_20260318_103607.nc
 radar_20260318_104207.nc
 radar_20260318_105407.nc
+radar_20260318_110607.nc
