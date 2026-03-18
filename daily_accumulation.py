@@ -121,13 +121,13 @@ def calculate_daily():
             # 6. GENERAR PNG (Només si hi ha dades de radar)
             generate_daily_png(total_precip, lon, lat, ieri)
 
-            # 7. BORRAR RADARS
-            print(f"🗑️ Netejant fitxers temporals de radar...")
-            for f in used_files:
+            # 7. ELIMINAR FITXERS RADAR D'AQUEST DIA
+            print(f"🗑️ Netejant fitxers de radar del dia {ieri}...")
+            for f_path in all_files_paths:
                 try:
-                    os.remove(os.path.join(OUTPUT_DIR, f))
-                except:
-                    pass
+                    os.remove(f_path)
+                except Exception as e:
+                    print(f"⚠️ No s'ha pogut eliminar {f_path}: {e}")
 
     # --- BLOC ESTACIONS (S'executa sempre) ---
     try:
@@ -192,22 +192,6 @@ def save_stations_geojson(dades, path):
 
 if __name__ == "__main__":
     calculate_daily()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
