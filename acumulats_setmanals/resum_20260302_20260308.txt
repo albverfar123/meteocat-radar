@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-03-02 a 2026-03-08
+--------------------------------------------------
+20260302: PLUJA      -> Vàlid: PN dels Ports (3.0 mm)
+20260303: PLUJA      -> Vàlid: Espot (2.519 m) (4.2 mm)
+20260304: PLUJA      -> Vàlid: PN dels Ports (9.2 mm)
+20260305: PLUJA      -> Vàlid: Viladrau (106.1 mm)
+20260306: PLUJA      -> Vàlid: PN dels Ports (147.3 mm)
+20260307: PLUJA      -> Vàlid: Prades (46.7 mm)
+20260308: PLUJA      -> Vàlid: Illa de Buda (39.5 mm)
