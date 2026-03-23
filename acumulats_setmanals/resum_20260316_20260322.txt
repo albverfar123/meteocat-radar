@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-03-16 a 2026-03-22
+--------------------------------------------------
+20260316: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260317: ANTICICLÓ  -> Màxim: Cervera (0.1 mm)
+20260318: PLUJA      -> Vàlid: Sant Pau de Segúries (13.3 mm)
+20260319: PLUJA      -> Vàlid: PN dels Ports (6.0 mm)
+20260320: ANTICICLÓ  -> Màxim: Ulldeter (2.413 m) (0.6 mm)
+20260321: ANTICICLÓ  -> Màxim: Sasseuva (2.226 m) (0.5 mm)
+20260322: PLUJA      -> Vàlid: Espolla (14.1 mm)
