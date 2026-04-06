@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-03-30 a 2026-04-05
+--------------------------------------------------
+20260330: PLUJA      -> Vàlid: Certascan (2.398 m) (7.6 mm)
+20260331: PLUJA      -> Vàlid: Certascan (2.398 m) (39.9 mm)
+20260401: PLUJA      -> Vàlid: Certascan (2.398 m) (94.6 mm)
+20260402: PLUJA      -> Vàlid: Lac Redon (2.245 m) (40.7 mm)
+20260403: PLUJA      -> Vàlid: Sasseuva (2.226 m) (6.2 mm)
+20260404: ANTICICLÓ  -> Màxim: Vacarisses (0.3 mm)
+20260405: PLUJA      -> Vàlid: Sasseuva (2.226 m) (2.7 mm)
