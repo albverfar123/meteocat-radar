@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-04-06 a 2026-04-12
+--------------------------------------------------
+20260406: ANTICICLÓ  -> Màxim: Vacarisses (0.1 mm)
+20260407: ANTICICLÓ  -> Màxim: Illa de Buda (0.2 mm)
+20260408: ANTICICLÓ  -> Màxim: Portbou - coll dels Belitres (0.3 mm)
+20260409: ANTICICLÓ  -> Màxim: Sant Pere Pescador (0.1 mm)
+20260410: ANTICICLÓ  -> Màxim: Vacarisses (0.1 mm)
+20260411: PLUJA      -> Vàlid: Vielha - Elipòrt (7.3 mm)
+20260412: PLUJA      -> Vàlid: Sant Romà d'Abella (19.8 mm)
