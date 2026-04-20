@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-04-13 a 2026-04-19
+--------------------------------------------------
+20260413: PLUJA      -> Vàlid: Palafrugell (10.0 mm)
+20260414: PLUJA      -> Vàlid: Certascan (2.398 m) (2.9 mm)
+20260415: ANTICICLÓ  -> Màxim: Fogars de la Selva (0.1 mm)
+20260416: ANTICICLÓ  -> Màxim: Illa de Buda (0.1 mm)
+20260417: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260418: PLUJA      -> Vàlid: Espot (2.519 m) (2.9 mm)
+20260419: PLUJA      -> Vàlid: Cadí Nord (2.145 m) - Prat d'Aguiló (37.9 mm)
