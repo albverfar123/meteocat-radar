@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-04-20 a 2026-04-26
+--------------------------------------------------
+20260420: PLUJA      -> Vàlid: l'Espluga de Francolí (19.7 mm)
+20260421: PLUJA      -> Vàlid: Gisclareny (32.0 mm)
+20260422: PLUJA      -> Vàlid: Sant Pau de Segúries (30.6 mm)
+20260423: PLUJA      -> Vàlid: Puigcerdà (4.2 mm)
+20260424: PLUJA      -> Vàlid: Salòria (2.451 m) (7.2 mm)
+20260425: PLUJA      -> Vàlid: Salòria (2.451 m) (21.6 mm)
+20260426: PLUJA      -> Vàlid: Lladurs (18.9 mm)
