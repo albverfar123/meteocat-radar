@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-04-27 a 2026-05-03
+--------------------------------------------------
+20260427: PLUJA      -> Vàlid: Montesquiu (61.1 mm)
+20260428: PLUJA      -> Vàlid: Molló - Fabert (2.9 mm)
+20260429: PLUJA      -> Vàlid: Tivissa (1.3 mm)
+20260430: PLUJA      -> Vàlid: Tírvia (16.2 mm)
+20260501: PLUJA      -> Vàlid: Espot (2.519 m) (15.7 mm)
+20260502: PLUJA      -> Vàlid: Miami Platja (40.3 mm)
+20260503: PLUJA      -> Vàlid: Espot (2.519 m) (31.6 mm)
