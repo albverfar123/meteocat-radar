@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-05-04 a 2026-05-10
+--------------------------------------------------
+20260504: PLUJA      -> Vàlid: Alinyà (35.8 mm)
+20260505: PLUJA      -> Vàlid: Pantà de Darnius - Boadella (46.2 mm)
+20260506: PLUJA      -> Vàlid: Cabanes (34.3 mm)
+20260507: PLUJA      -> Vàlid: Lladurs (46.0 mm)
+20260508: PLUJA      -> Vàlid: PN dels Ports (3.0 mm)
+20260509: PLUJA      -> Vàlid: PN dels Ports (31.5 mm)
+20260510: PLUJA      -> Vàlid: Sant Martí de Riucorb (15.6 mm)
