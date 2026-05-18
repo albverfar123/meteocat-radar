@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-05-11 a 2026-05-17
+--------------------------------------------------
+20260511: PLUJA      -> Vàlid: Molló - Fabert (6.7 mm)
+20260512: PLUJA      -> Vàlid: Sant Pau de Segúries (54.3 mm)
+20260513: PLUJA      -> Vàlid: Girona (7.2 mm)
+20260514: PLUJA      -> Vàlid: Pantà de Darnius - Boadella (54.9 mm)
+20260515: PLUJA      -> Vàlid: Lac Redon (2.245 m) (20.2 mm)
+20260516: ANTICICLÓ  -> Màxim: Castell d'Aro (0.7 mm)
+20260517: PLUJA      -> Vàlid: Orís (32.0 mm)
