@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-05-25 a 2026-05-31
+--------------------------------------------------
+20260525: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260526: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260527: ANTICICLÓ  -> Màxim: Sant Pere Pescador (0.1 mm)
+20260528: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260529: PLUJA      -> Vàlid: Santuari de Queralt (11.4 mm)
+20260530: PLUJA      -> Vàlid: Perafita (12.4 mm)
+20260531: PLUJA      -> Vàlid: Guixers - Valls (27.9 mm)
