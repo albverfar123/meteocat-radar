@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-06-08 a 2026-06-14
+--------------------------------------------------
+20260608: PLUJA      -> Vàlid: Molló - Fabert (19.2 mm)
+20260609: PLUJA      -> Vàlid: Boí (2.537 m) (12.0 mm)
+20260610: PLUJA      -> Vàlid: Oliola (12.4 mm)
+20260611: PLUJA      -> Vàlid: Montserrat - Sant Dimes (2.5 mm)
+20260612: ANTICICLÓ  -> Màxim: Amposta (0.1 mm)
+20260613: ANTICICLÓ  -> Màxim: Certascan (2.398 m) (0.6 mm)
+20260614: PLUJA      -> Vàlid: Bonaigua (2.262 m) (25.0 mm)
