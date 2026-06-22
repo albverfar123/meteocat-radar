@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-06-15 a 2026-06-21
+--------------------------------------------------
+20260615: PLUJA      -> Vàlid: el Port del Comte (2.288 m) (26.7 mm)
+20260616: PLUJA      -> Vàlid: Malniu (2.229 m) (41.0 mm)
+20260617: PLUJA      -> Vàlid: Bonabé (1.691 m) (25.5 mm)
+20260618: PLUJA      -> Vàlid: el Perelló (1.5 mm)
+20260619: ANTICICLÓ  -> Màxim: Salòria (2.451 m) (0.8 mm)
+20260620: ANTICICLÓ  -> Màxim: Bonabé (1.691 m) (0.4 mm)
+20260621: PLUJA      -> Vàlid: Puigcerdà (6.8 mm)
