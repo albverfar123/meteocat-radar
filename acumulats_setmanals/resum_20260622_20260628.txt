@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-06-22 a 2026-06-28
+--------------------------------------------------
+20260622: PLUJA      -> Vàlid: Lac Redon (2.245 m) (18.0 mm)
+20260623: PLUJA      -> Vàlid: Alinyà (17.4 mm)
+20260624: PLUJA      -> Vàlid: Lac Redon (2.245 m) (14.4 mm)
+20260625: ANTICICLÓ  -> Màxim: Illa de Buda (0.1 mm)
+20260626: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260627: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260628: PLUJA      -> Vàlid: Vielha - Elipòrt (3.8 mm)
