@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-06-29 a 2026-07-05
+--------------------------------------------------
+20260629: PLUJA      -> Vàlid: Santa Coloma de Farners (70.8 mm)
+20260630: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260701: ANTICICLÓ  -> Màxim: Pantà de Sau (0.1 mm)
+20260702: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260703: ANTICICLÓ  -> Màxim: Cardona (0.2 mm)
+20260704: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260705: ANTICICLÓ  -> Màxim: Port de Barcelona - ZAL Prat (0.1 mm)
