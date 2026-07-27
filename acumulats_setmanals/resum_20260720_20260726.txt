@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-07-20 a 2026-07-26
+--------------------------------------------------
+20260720: PLUJA      -> Vàlid: Falset (12.4 mm)
+20260721: PLUJA      -> Vàlid: l'Ametlla de Mar (1.3 mm)
+20260722: PLUJA      -> Vàlid: Mas de Barberans (7.0 mm)
+20260723: PLUJA      -> Vàlid: Sant Joan de les Abadesses (20.9 mm)
+20260724: PLUJA      -> Vàlid: Port de Barcelona - ZAL Prat (1.7 mm)
+20260725: PLUJA      -> Vàlid: Sant Llorenç Savall (34.5 mm)
+20260726: PLUJA      -> Vàlid: Sant Pau de Segúries (4.7 mm)
