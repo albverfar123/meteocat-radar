@@ -1,0 +1,9 @@
+RESUM SETMANAL: 2026-07-27 a 2026-08-02
+--------------------------------------------------
+20260727: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260728: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260729: ANTICICLÓ  -> Màxim: PN del Garraf - el Rascler (0.2 mm)
+20260730: ANTICICLÓ  -> Màxim: Castellnou de Seana (0.0 mm)
+20260731: PLUJA      -> Vàlid: Ulldeter (2.413 m) (7.7 mm)
+20260801: PLUJA      -> Vàlid: Castellar de n'Hug - el Clot del Moro (42.0 mm)
+20260802: PLUJA      -> Vàlid: la Pobla de Segur (2.4 mm)
